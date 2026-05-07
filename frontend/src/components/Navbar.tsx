@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { Shield, Moon, RefreshCw } from 'lucide-react'
+import { Shield, RefreshCw } from 'lucide-react'
 import { useLastUpdated } from '../context/LastUpdatedContext'
 
 function relativeTime(date: Date | null): string {
@@ -48,9 +48,6 @@ export function Navbar() {
           </div>
         </div>
         <div className="flex items-center gap-3 text-gray-400 text-xs">
-          <button className="hover:text-white transition-colors">
-            <Moon size={16} />
-          </button>
           <span>Last updated: {relativeTime(lastUpdated)}</span>
           <button className="hover:text-white transition-colors">
             <RefreshCw size={14} />
