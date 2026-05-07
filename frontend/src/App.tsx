@@ -9,7 +9,7 @@ import { LastUpdatedProvider } from './context/LastUpdatedContext'
 function AppFooter() {
   return (
     <footer className="border-t border-[#2a3040] bg-[#1a1f2e] px-6 py-3 flex items-center justify-between text-xs text-gray-500">
-      <span>Os status são calculados com base no último evento recebido de cada tarefa.</span>
+      <span>Status is calculated based on the last event received for each task.</span>
       <div className="flex items-center gap-2">
         <Shield size={14} className="text-blue-400" />
         <span>Backup Manager v0.1.0</span>

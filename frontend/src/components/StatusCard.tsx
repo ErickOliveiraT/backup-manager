@@ -10,17 +10,17 @@ interface Props {
 function timeAgo(timestamp: string): string {
   const diff = Date.now() - new Date(timestamp).getTime()
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'agora'
-  if (minutes < 60) return `${minutes}min`
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h`
-  return `${Math.floor(hours / 24)}d`
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
 }
 
 const STATUS_CONFIG = {
-  healthy:  { dot: 'bg-green-500',  bar: 'bg-green-500',  badge: 'bg-green-500/10 text-green-400',   label: 'Saudável' },
-  warning:  { dot: 'bg-yellow-400', bar: 'bg-yellow-400', badge: 'bg-yellow-500/10 text-yellow-400', label: 'Atenção'  },
-  critical: { dot: 'bg-red-500',    bar: 'bg-red-500',    badge: 'bg-red-500/10 text-red-400',       label: 'Crítico'  },
+  healthy:  { dot: 'bg-green-500',  bar: 'bg-green-500',  badge: 'bg-green-500/10 text-green-400',   label: 'Healthy'  },
+  warning:  { dot: 'bg-yellow-400', bar: 'bg-yellow-400', badge: 'bg-yellow-500/10 text-yellow-400', label: 'Warning'  },
+  critical: { dot: 'bg-red-500',    bar: 'bg-red-500',    badge: 'bg-red-500/10 text-red-400',       label: 'Critical' },
 }
 
 export function StatusCard({ entry, eventCount, compact = false }: Props) {
@@ -38,8 +38,8 @@ export function StatusCard({ entry, eventCount, compact = false }: Props) {
           <span className="text-gray-400 text-xs font-mono truncate">{entry.task}</span>
         </div>
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${badge}`}>{label}</span>
-        <span className="text-gray-500 text-xs shrink-0">há {timeAgo(entry.last_event.timestamp)}</span>
-        <span className="text-gray-600 text-xs shrink-0">{eventCount} eventos</span>
+        <span className="text-gray-500 text-xs shrink-0">{timeAgo(entry.last_event.timestamp)}</span>
+        <span className="text-gray-600 text-xs shrink-0">{eventCount} events</span>
       </div>
     )
   }
@@ -66,8 +66,8 @@ export function StatusCard({ entry, eventCount, compact = false }: Props) {
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-[#2a3040] text-gray-500 text-xs">
-          <span>há {timeAgo(entry.last_event.timestamp)}</span>
-          <span>{eventCount} eventos</span>
+          <span>{timeAgo(entry.last_event.timestamp)}</span>
+          <span>{eventCount} events</span>
         </div>
       </div>
       <div className={`h-1 w-full ${bar}`} />

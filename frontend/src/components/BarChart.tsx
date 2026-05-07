@@ -12,7 +12,7 @@ interface BarChartProps {
 export function BarChart({ data }: BarChartProps) {
   return (
     <div className="bg-[#1a1f2e] border border-[#2a3040] rounded-xl p-5 flex flex-col gap-4">
-      <h3 className="text-white text-sm font-semibold">Backups por dispositivo</h3>
+      <h3 className="text-white text-sm font-semibold">Backups by device</h3>
       <div className="flex flex-col gap-3">
         {data.map((d) => {
           const rowTotal = d.healthy + d.warning + d.critical || 1
@@ -46,15 +46,15 @@ export function BarChart({ data }: BarChartProps) {
       <div className="flex gap-4 text-xs text-gray-500">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2 h-2 rounded-full bg-green-500" />
-          Saudáveis
+          Healthy
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2 h-2 rounded-full bg-yellow-400" />
-          Atenção
+          Warning
         </span>
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2 h-2 rounded-full bg-red-500" />
-          Críticos
+          Critical
         </span>
       </div>
     </div>

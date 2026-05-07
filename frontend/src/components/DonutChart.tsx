@@ -26,7 +26,7 @@ export function DonutChart({ healthy, warning, critical }: DonutChartProps) {
 
   return (
     <div className="bg-[#1a1f2e] border border-[#2a3040] rounded-xl p-5 flex flex-col gap-4">
-      <h3 className="text-white text-sm font-semibold">Distribuição de status</h3>
+      <h3 className="text-white text-sm font-semibold">Status distribution</h3>
       <div className="flex items-center gap-6">
         <div className="relative shrink-0">
           <svg viewBox="0 0 160 160" className="w-36 h-36">
@@ -73,19 +73,19 @@ export function DonutChart({ healthy, warning, critical }: DonutChartProps) {
         <div className="flex flex-col gap-3 text-sm">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-green-500 shrink-0" />
-            <span className="text-gray-400 text-xs">Saudáveis</span>
+            <span className="text-gray-400 text-xs">Healthy</span>
             <span className="ml-auto text-white font-medium text-xs">{healthy}</span>
             <span className="text-gray-600 text-xs w-10 text-right">({hPct}%)</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shrink-0" />
-            <span className="text-gray-400 text-xs">Atenção</span>
+            <span className="text-gray-400 text-xs">Warning</span>
             <span className="ml-auto text-white font-medium text-xs">{warning}</span>
             <span className="text-gray-600 text-xs w-10 text-right">({wPct}%)</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" />
-            <span className="text-gray-400 text-xs">Críticos</span>
+            <span className="text-gray-400 text-xs">Critical</span>
             <span className="ml-auto text-white font-medium text-xs">{critical}</span>
             <span className="text-gray-600 text-xs w-10 text-right">({cPct}%)</span>
           </div>

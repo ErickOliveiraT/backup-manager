@@ -19,11 +19,11 @@ type ViewMode = 'grid' | 'list'
 function timeAgoShort(timestamp: string): string {
   const diff = Date.now() - new Date(timestamp).getTime()
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'agora'
-  if (minutes < 60) return `${minutes}min`
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h`
-  return `${Math.floor(hours / 24)}d`
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
 }
 
 export function Dashboard() {
@@ -105,9 +105,9 @@ export function Dashboard() {
     <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col gap-8">
       {/* Header */}
       <div>
-        <h1 className="text-white text-2xl font-bold">Visão geral dos backups</h1>
+        <h1 className="text-white text-2xl font-bold">Backup Overview</h1>
         <p className="text-gray-500 text-sm mt-1">
-          Panorama da saúde dos backups em todos os dispositivos e tarefas
+          Health status of all backups across devices and tasks
         </p>
       </div>
 
@@ -118,7 +118,7 @@ export function Dashboard() {
           onChange={(e) => setFilterDevice(e.target.value)}
           className={selectCls}
         >
-          <option value="">Todos os dispositivos</option>
+          <option value="">All devices</option>
           {devices.map((d) => (
             <option key={d.id} value={d.id}>
               {d.name || d.id}
@@ -130,10 +130,10 @@ export function Dashboard() {
           onChange={(e) => setFilterStatus(e.target.value)}
           className={selectCls}
         >
-          <option value="">Todos os status</option>
-          <option value="healthy">Saudável</option>
-          <option value="warning">Atenção</option>
-          <option value="critical">Crítico</option>
+          <option value="">All statuses</option>
+          <option value="healthy">Healthy</option>
+          <option value="warning">Warning</option>
+          <option value="critical">Critical</option>
         </select>
         <div className="ml-auto flex gap-1">
           <button
@@ -163,23 +163,23 @@ export function Dashboard() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         <StatCard
           icon={Monitor}
-          label="Dispositivos"
+          label="Devices"
           value={uniqueDeviceIds.size}
-          sub={`Ativos: ${uniqueDeviceIds.size}`}
+          sub={`Active: ${uniqueDeviceIds.size}`}
           iconColor="text-blue-400"
           iconBg="bg-blue-500/10"
         />
         <StatCard
           icon={ListChecks}
-          label="Tarefas"
+          label="Tasks"
           value={total}
-          sub="Monitoradas"
+          sub="Monitored"
           iconColor="text-blue-400"
           iconBg="bg-blue-500/10"
         />
         <StatCard
           icon={CheckCircle}
-          label="Saudáveis"
+          label="Healthy"
           value={healthy}
           sub={`${healthPct}%`}
           iconColor="text-green-400"
@@ -187,7 +187,7 @@ export function Dashboard() {
         />
         <StatCard
           icon={AlertTriangle}
-          label="Atenção"
+          label="Warning"
           value={warnings}
           sub={`${warnPct}%`}
           iconColor="text-yellow-400"
@@ -195,7 +195,7 @@ export function Dashboard() {
         />
         <StatCard
           icon={XCircle}
-          label="Críticos"
+          label="Critical"
           value={criticals}
           sub={`${critPct}%`}
           iconColor="text-red-400"
@@ -203,9 +203,9 @@ export function Dashboard() {
         />
         <StatCard
           icon={Clock}
-          label="Último backup"
-          value={latestEvent ? `há ${timeAgoShort(latestEvent.timestamp)}` : '—'}
-          sub="Mais recente"
+          label="Last backup"
+          value={latestEvent ? timeAgoShort(latestEvent.timestamp) : '—'}
+          sub="Most recent"
           iconColor="text-blue-400"
           iconBg="bg-blue-500/10"
         />
@@ -213,7 +213,7 @@ export function Dashboard() {
 
       {/* Cards grid / list */}
       {loading ? (
-        <p className="text-gray-500 text-sm">Carregando...</p>
+        <p className="text-gray-500 text-sm">Loading...</p>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((entry) => (
@@ -230,8 +230,8 @@ export function Dashboard() {
               hover:border-blue-600 hover:text-blue-400 transition-colors min-h-[160px]"
           >
             <Plus size={24} />
-            <span className="text-sm font-medium">Adicionar tarefa</span>
-            <span className="text-xs text-center">Monitore uma nova tarefa de backup</span>
+            <span className="text-sm font-medium">Add task</span>
+            <span className="text-xs text-center">Monitor a new backup task</span>
           </Link>
         </div>
       ) : (
@@ -245,7 +245,7 @@ export function Dashboard() {
             />
           ))}
           {filtered.length === 0 && (
-            <p className="text-gray-500 text-sm">Nenhuma tarefa encontrada.</p>
+            <p className="text-gray-500 text-sm">No tasks found.</p>
           )}
         </div>
       )}

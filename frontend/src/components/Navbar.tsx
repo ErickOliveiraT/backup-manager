@@ -6,15 +6,14 @@ import { useLastUpdated } from '../context/LastUpdatedContext'
 function relativeTime(date: Date | null): string {
   if (!date) return '—'
   const diff = Math.floor((Date.now() - date.getTime()) / 1000)
-  if (diff < 60) return `há ${diff}s`
+  if (diff < 60) return `${diff}s ago`
   const mins = Math.floor(diff / 60)
-  if (mins < 60) return `há ${mins}min`
-  return `há ${Math.floor(mins / 60)}h`
+  if (mins < 60) return `${mins}m ago`
+  return `${Math.floor(mins / 60)}h ago`
 }
 
 const activeLinkClass = 'bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors'
 const inactiveLinkClass = 'text-gray-400 hover:bg-[#2a3040] hover:text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors'
-const disabledLinkClass = 'text-gray-600 px-3 py-1.5 rounded-md text-sm font-medium cursor-not-allowed'
 
 export function Navbar() {
   const { lastUpdated } = useLastUpdated()
@@ -41,10 +40,10 @@ export function Navbar() {
               Dashboard
             </NavLink>
             <NavLink to="/devices" className={linkClass}>
-              Dispositivos
+              Devices
             </NavLink>
             <NavLink to="/tasks" className={linkClass}>
-              Tarefas
+              Tasks
             </NavLink>
           </div>
         </div>
@@ -52,7 +51,7 @@ export function Navbar() {
           <button className="hover:text-white transition-colors">
             <Moon size={16} />
           </button>
-          <span>Última atualização: {relativeTime(lastUpdated)}</span>
+          <span>Last updated: {relativeTime(lastUpdated)}</span>
           <button className="hover:text-white transition-colors">
             <RefreshCw size={14} />
           </button>

@@ -9,11 +9,11 @@ interface RecentEventsListProps {
 function timeAgo(timestamp: string): string {
   const diff = Date.now() - new Date(timestamp).getTime()
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'agora'
-  if (minutes < 60) return `${minutes}min`
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h`
-  return `${Math.floor(hours / 24)}d`
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
 }
 
 export function RecentEventsList({ events, devices }: RecentEventsListProps) {
@@ -25,10 +25,10 @@ export function RecentEventsList({ events, devices }: RecentEventsListProps) {
 
   return (
     <div className="bg-[#1a1f2e] border border-[#2a3040] rounded-xl p-5 flex flex-col gap-4">
-      <h3 className="text-white text-sm font-semibold">Eventos recentes</h3>
+      <h3 className="text-white text-sm font-semibold">Recent events</h3>
       <div className="flex flex-col gap-3 overflow-y-auto">
         {recent.length === 0 ? (
-          <p className="text-gray-600 text-xs">Nenhum evento registrado.</p>
+          <p className="text-gray-600 text-xs">No events recorded.</p>
         ) : (
           recent.map((event) => (
             <div key={event.id} className="flex items-start gap-3">
@@ -44,7 +44,7 @@ export function RecentEventsList({ events, devices }: RecentEventsListProps) {
                 <div className="text-gray-500 text-xs truncate">{event.task}</div>
               </div>
               <div className="flex flex-col items-end shrink-0 gap-0.5">
-                <span className="text-gray-500 text-xs">há {timeAgo(event.timestamp)}</span>
+                <span className="text-gray-500 text-xs">{timeAgo(event.timestamp)}</span>
                 <span className="text-gray-700 text-xs">{event.source}</span>
               </div>
             </div>
