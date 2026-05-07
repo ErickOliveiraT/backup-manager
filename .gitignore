@@ -1,0 +1,6 @@
+prompt.md
+CLAUDE.md
+api/node_modules/*
+frontend/node_modules/*
+api/db/*
+api/dist/*
