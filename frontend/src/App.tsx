@@ -1,14 +1,29 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { Shield } from 'lucide-react'
 import { Navbar } from './components/Navbar'
 import { Dashboard } from './pages/Dashboard'
 import { DevicesPage } from './pages/DevicesPage'
 import { TasksPage } from './pages/TasksPage'
+import { LastUpdatedProvider } from './context/LastUpdatedContext'
+
+function AppFooter() {
+  return (
+    <footer className="border-t border-[#2a3040] bg-[#1a1f2e] px-6 py-3 flex items-center justify-between text-xs text-gray-500">
+      <span>Os status são calculados com base no último evento recebido de cada tarefa.</span>
+      <div className="flex items-center gap-2">
+        <Shield size={14} className="text-blue-400" />
+        <span>Backup Manager v0.1.0</span>
+      </div>
+    </footer>
+  )
+}
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100">
+    <div className="min-h-screen bg-[#0f1117] text-gray-100 flex flex-col">
       <Navbar />
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
+      <AppFooter />
     </div>
   )
 }
@@ -41,5 +56,9 @@ const router = createBrowserRouter([
 ])
 
 export default function App() {
-  return <RouterProvider router={router} />
+  return (
+    <LastUpdatedProvider>
+      <RouterProvider router={router} />
+    </LastUpdatedProvider>
+  )
 }
