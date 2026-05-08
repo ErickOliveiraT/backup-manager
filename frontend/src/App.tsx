@@ -4,6 +4,7 @@ import { Navbar } from './components/Navbar'
 import { Dashboard } from './pages/Dashboard'
 import { DevicesPage } from './pages/DevicesPage'
 import { TasksPage } from './pages/TasksPage'
+import { EventsPage } from './pages/EventsPage'
 import { LastUpdatedProvider } from './context/LastUpdatedContext'
 
 function AppFooter() {
@@ -50,6 +51,14 @@ const router = createBrowserRouter([
     element: (
       <Layout>
         <TasksPage />
+      </Layout>
+    ),
+  },
+  {
+    path: '/events',
+    element: (
+      <Layout>
+        <EventsPage />
       </Layout>
     ),
   },

@@ -13,3 +13,11 @@ export async function getEvents(deviceId?: string): Promise<BackupEvent[]> {
   const snap = await query.get()
   return snap.docs.map((d) => d.data() as BackupEvent)
 }
+
+export async function deleteEvent(id: string): Promise<boolean> {
+  const docRef = eventsCol.doc(id)
+  const snap = await docRef.get()
+  if (!snap.exists) return false
+  await docRef.delete()
+  return true
+}

@@ -45,6 +45,9 @@ export function Navbar() {
             <NavLink to="/tasks" className={linkClass}>
               Tasks
             </NavLink>
+            <NavLink to="/events" className={linkClass}>
+              Events
+            </NavLink>
           </div>
         </div>
         <div className="flex items-center gap-3 text-gray-400 text-xs">
