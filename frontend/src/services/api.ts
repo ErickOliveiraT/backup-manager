@@ -1,4 +1,4 @@
-import type { Device, BackupEvent, StatusEntry, Task } from '../types'
+import type { Device, BackupEvent, StatusEntry, Task, PaginatedEvents } from '../types'
 import { getToken, clearToken } from './auth'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001'
@@ -38,9 +38,28 @@ export const fetchStatus = () => request<StatusEntry[]>('/status')
 
 export const fetchDevices = () => request<Device[]>('/devices')
 
-export const fetchEvents = (deviceId?: string) => {
-  const qs = deviceId ? `?device_id=${encodeURIComponent(deviceId)}` : ''
-  return request<BackupEvent[]>(`/events${qs}`)
+export interface EventFilters {
+  device_id?: string
+  status?: string
+  task?: string
+  source?: string
+  date_from?: string
+  date_to?: string
+  page?: number
+  limit?: number
+}
+
+export const fetchEvents = async (filters: EventFilters = {}): Promise<PaginatedEvents> => {
+  const params = new URLSearchParams()
+  Object.entries(filters).forEach(([k, v]) => {
+    if (v !== undefined && v !== '') params.set(k, String(v))
+  })
+  const qs = params.size ? `?${params}` : ''
+  const result = await request<PaginatedEvents | BackupEvent[]>(`/events${qs}`)
+  if (Array.isArray(result)) {
+    return { data: result, total: result.length, page: 1, pages: 1 }
+  }
+  return result
 }
 
 export const createDevice = (data: { id: string; name: string }) =>

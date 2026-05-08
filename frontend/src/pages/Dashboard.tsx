@@ -45,7 +45,7 @@ export function Dashboard() {
       ])
       setStatusList(statusData)
       setDevices(devicesData)
-      setEvents(eventsData)
+      setEvents(eventsData.data ?? [])
       setLastUpdated(new Date())
     } catch (err) {
       console.error('Failed to fetch status', err)
