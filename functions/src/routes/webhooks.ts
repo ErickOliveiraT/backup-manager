@@ -7,7 +7,11 @@ import type { BackupEvent } from '../types.js'
 
 const router = Router()
 
-const REQUIRED = ['device_id', 'source', 'task', 'status', 'timestamp'] as const
+const REQUIRED = ['device_id', 'source', 'task', 'status'] as const
+
+function nowInSaoPaulo(): string {
+  return new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T') + '-03:00'
+}
 
 router.post('/sync', async (req: Request, res: Response) => {
   const WEBHOOK_API_KEY = process.env.WEBHOOK_API_KEY
@@ -34,7 +38,7 @@ router.post('/sync', async (req: Request, res: Response) => {
     source: body.source as string,
     task: body.task as string,
     status: body.status as BackupEvent['status'],
-    timestamp: body.timestamp as string,
+    timestamp: nowInSaoPaulo(),
   }
 
   const event = await addEvent(payload)

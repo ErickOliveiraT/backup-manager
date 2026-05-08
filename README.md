@@ -117,7 +117,7 @@ Use o token retornado no header `Authorization: Bearer <token>` nas demais requi
 
 ### Webhook — enviar evento de backup
 
-O campo `api_key` é obrigatório. O webhook cria automaticamente o device e a task caso ainda não existam.
+O campo `api_key` é obrigatório. O timestamp é gerado automaticamente pelo servidor no fuso horário de São Paulo. O webhook cria automaticamente o device e a task caso ainda não existam.
 
 ```bash
 # Backup bem-sucedido
@@ -128,8 +128,7 @@ curl -X POST $BASE_URL/webhooks/sync \
     "device_id": "notebook-linux",
     "source": "opensync",
     "task": "documents-backup",
-    "status": "success",
-    "timestamp": "2026-05-07T03:00:00Z"
+    "status": "success"
   }'
 
 # Backup com erro
@@ -140,21 +139,8 @@ curl -X POST $BASE_URL/webhooks/sync \
     "device_id": "notebook-linux",
     "source": "rsync",
     "task": "system-backup",
-    "status": "error",
-    "timestamp": "2026-05-07T04:15:00Z"
+    "status": "error"
   }'
-
-# Timestamp relativo (agora)
-curl -X POST $BASE_URL/webhooks/sync \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"api_key\": \"seu-segredo-aqui\",
-    \"device_id\": \"notebook-linux\",
-    \"source\": \"opensync\",
-    \"task\": \"documents-backup\",
-    \"status\": \"success\",
-    \"timestamp\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-  }"
 ```
 
 ### Dispositivos
