@@ -27,6 +27,13 @@ export const createDevice = (data: { id: string; name: string }) =>
     body: JSON.stringify(data),
   })
 
+export const updateDevice = (id: string, name: string) =>
+  request<Device>(`/devices/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  })
+
 export const fetchTasks = () => request<Task[]>('/tasks')
 
 export const createTask = (data: {

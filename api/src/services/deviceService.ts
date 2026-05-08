@@ -16,3 +16,11 @@ export async function deviceExists(id: string): Promise<boolean> {
   const snap = await devicesCol.doc(id).get()
   return snap.exists
 }
+
+export async function updateDevice(id: string, name: string): Promise<Device | null> {
+  const docRef = devicesCol.doc(id)
+  const snap = await docRef.get()
+  if (!snap.exists) return null
+  await docRef.update({ name })
+  return { ...(snap.data() as Device), name }
+}

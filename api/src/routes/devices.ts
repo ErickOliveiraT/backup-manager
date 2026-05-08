@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
-import { getDevices, addDevice, deviceExists } from '../services/deviceService.js'
+import { getDevices, addDevice, deviceExists, updateDevice } from '../services/deviceService.js'
 
 const router = Router()
 
@@ -26,6 +26,20 @@ router.post('/', async (req: Request, res: Response) => {
 
   const device = await addDevice({ id, name })
   res.status(201).json(device)
+})
+
+router.patch('/:id', async (req: Request<{ id: string }>, res: Response) => {
+  const { name } = req.body as Record<string, unknown>
+  if (!name || typeof name !== 'string') {
+    res.status(400).json({ error: 'Field "name" is required' })
+    return
+  }
+  const updated = await updateDevice(req.params.id, name)
+  if (!updated) {
+    res.status(404).json({ error: `Device "${req.params.id}" not found` })
+    return
+  }
+  res.json(updated)
 })
 
 export default router
