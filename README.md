@@ -1,98 +1,106 @@
 # Backup Manager
 
-Sistema de monitoramento de backups que recebe eventos via webhook e exibe o estado de saúde em um dashboard web.
+Backup monitoring system that receives events via webhook and displays health status on a web dashboard.
 
 ## Stack
 
 - **Functions**: Node.js + TypeScript + Firebase Functions v2 + Express
-- **Banco de dados**: Firestore
+- **Database**: Firestore
 - **Frontend**: React + Vite + TypeScript + Tailwind CSS v4
+- **Hosting**: Firebase Hosting — `https://backup-manager-2ae79.web.app`
+
+---
 
 ## Setup
 
-### Pré-requisitos
+### Prerequisites
 
 - [Firebase CLI](https://firebase.google.com/docs/cli): `npm install -g firebase-tools`
-- Autenticado: `firebase login`
+- Authenticated: `firebase login`
 
-### Firebase Functions
+### Functions — environment variables
 
-#### Configurando as variáveis de ambiente
-
-Copie o arquivo de exemplo e preencha com os valores reais:
+Copy the example file and fill in the real values:
 
 ```bash
 cp functions/.env.example functions/.env
 ```
 
 ```
-WEBHOOK_API_KEY=seu-segredo-aqui
+WEBHOOK_API_KEY=your-secret-here
 LOGIN_USER=admin
-LOGIN_PASSWORD=sua-senha-aqui
-JWT_SECRET=seu-jwt-secret-aqui
+LOGIN_PASSWORD=your-password-here
+JWT_SECRET=your-jwt-secret-here
+ALLOWED_ORIGINS=https://backup-manager-2ae79.web.app,http://localhost:5173
 ```
 
-O arquivo `functions/.env` é lido automaticamente pelo Firebase CLI tanto no emulador quanto no deploy. Ele está no `.gitignore`.
+`functions/.env` is loaded automatically by Firebase CLI in both the emulator and on deploy. It is gitignored.
 
-#### Atualizando as variáveis
-
-Edite `functions/.env` diretamente e faça um novo deploy:
+To update a variable, edit `functions/.env` and redeploy:
 
 ```bash
-firebase deploy --only functions
+npm run deploy
 ```
 
-#### Rodando localmente (emulador)
-
-1. Certifique-se de que `functions/.env` está preenchido.
-
-2. Instale as dependências e inicie o emulador:
+### Functions — running locally
 
 ```bash
-cd functions && npm install
-cd ..
-firebase emulators:start --only functions
+cd functions && npm install && cd ..
+npm run emulator
 ```
 
-As functions ficam disponíveis em `http://127.0.0.1:5001/backup-manager-2ae79/us-central1/`.
+Functions are available at `http://127.0.0.1:5001/backup-manager-2ae79/us-central1/`.
 
-#### Deploy
+### Functions — deploy
 
 ```bash
-firebase deploy --only functions
+npm run deploy
 ```
 
-O build TypeScript roda automaticamente antes do deploy. As functions são publicadas em:
+The TypeScript build runs automatically before deploy. Functions are published at:
 
 ```
-https://us-central1-backup-manager-2ae79.cloudfunctions.net/{nome-da-function}
+https://us-central1-backup-manager-2ae79.cloudfunctions.net/{function-name}
 ```
 
 ### Frontend
 
 ```bash
-cd frontend
-npm install
-npm run dev
-# Rodando em http://localhost:5173
+cd frontend && npm install
+npm run frontend:dev   # from project root
 ```
 
-O frontend lê `VITE_API_BASE_URL` para saber onde está a API. Copie o exemplo e ajuste conforme o ambiente:
+The frontend reads `VITE_API_BASE_URL` to locate the API.
+
+- **Production** (`frontend/.env`): points to the Cloud Functions URL
+- **Local dev** (`frontend/.env.local`): points to the emulator — create from the example:
 
 ```bash
-cp frontend/.env.example frontend/.env
+cp frontend/.env.example frontend/.env.local
 ```
 
-O arquivo `frontend/.env` está no `.gitignore`. O `.env.example` serve de template com a URL do emulador local.
+Both files are gitignored. `.env.example` is the committed template with the emulator URL.
+
+---
+
+## Root scripts
+
+```bash
+npm run build          # compile functions TypeScript
+npm run deploy         # deploy functions
+npm run emulator       # start Firebase emulator
+npm run frontend:dev   # start Vite dev server
+npm run frontend:build # build frontend for production
+```
 
 ---
 
 ## Functions
 
-| Function | Rota | Auth |
+| Function | Route | Auth |
 |---|---|---|
-| `auth` | `POST /auth/login` | pública |
-| `webhooks` | `POST /webhooks/sync` | api_key no body |
+| `auth` | `POST /auth/login` | public |
+| `webhooks` | `POST /webhooks/sync` | api_key in body |
 | `devices` | `GET/POST /devices`, `PATCH /devices/:id` | JWT |
 | `events` | `GET /events`, `DELETE /events/:id` | JWT |
 | `tasks` | `GET/POST/PATCH/DELETE /tasks` | JWT |
@@ -102,40 +110,40 @@ O arquivo `frontend/.env` está no `.gitignore`. O `.env.example` serve de templ
 
 ## API
 
-> Nos exemplos abaixo, substitua `BASE_URL` por `http://127.0.0.1:5001/backup-manager-2ae79/us-central1` (emulador) ou `https://us-central1-backup-manager-2ae79.cloudfunctions.net` (produção).
+> In the examples below, replace `BASE_URL` with `http://127.0.0.1:5001/backup-manager-2ae79/us-central1` (emulator) or `https://us-central1-backup-manager-2ae79.cloudfunctions.net` (production).
 
-### Autenticação
+### Authentication
 
 ```bash
 curl -X POST $BASE_URL/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "sua-senha-aqui"}'
-# Retorna {"token": "..."}
+  -d '{"username": "admin", "password": "your-password-here"}'
+# Returns {"token": "..."}
 ```
 
-Use o token retornado no header `Authorization: Bearer <token>` nas demais requisições.
+Use the returned token in the `Authorization: Bearer <token>` header for all protected endpoints.
 
-### Webhook — enviar evento de backup
+### Webhook — send a backup event
 
-O campo `api_key` é obrigatório. O timestamp é gerado automaticamente pelo servidor no fuso horário de São Paulo. O webhook cria automaticamente o device e a task caso ainda não existam.
+The `api_key` field is required. The timestamp is generated server-side (São Paulo timezone). Devices and tasks are created automatically if they don't exist yet.
 
 ```bash
-# Backup bem-sucedido
+# Successful backup
 curl -X POST $BASE_URL/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
-    "api_key": "seu-segredo-aqui",
+    "api_key": "your-secret-here",
     "device_id": "notebook-linux",
     "source": "opensync",
     "task": "documents-backup",
     "status": "success"
   }'
 
-# Backup com erro
+# Failed backup
 curl -X POST $BASE_URL/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
-    "api_key": "seu-segredo-aqui",
+    "api_key": "your-secret-here",
     "device_id": "notebook-linux",
     "source": "rsync",
     "task": "system-backup",
@@ -143,13 +151,13 @@ curl -X POST $BASE_URL/webhooks/sync \
   }'
 ```
 
-### Dispositivos
+### Devices
 
 ```bash
-# Listar
+# List
 curl -H "Authorization: Bearer $TOKEN" $BASE_URL/devices
 
-# Criar
+# Create
 curl -X POST $BASE_URL/devices \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
@@ -159,10 +167,10 @@ curl -X POST $BASE_URL/devices \
 ### Tasks
 
 ```bash
-# Listar
+# List
 curl -H "Authorization: Bearer $TOKEN" $BASE_URL/tasks
 
-# Criar com thresholds customizados
+# Create with custom thresholds
 curl -X POST $BASE_URL/tasks \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
@@ -174,32 +182,32 @@ curl -X POST $BASE_URL/tasks \
     "critical_hours": 336
   }'
 
-# Atualizar thresholds
+# Update thresholds
 curl -X PATCH $BASE_URL/tasks/<id> \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"warning_hours": 48, "critical_hours": 96}'
 
-# Remover cron (setar null)
+# Remove cron (set null)
 curl -X PATCH $BASE_URL/tasks/<id> \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"cron": null}'
 
-# Deletar
+# Delete
 curl -X DELETE -H "Authorization: Bearer $TOKEN" $BASE_URL/tasks/<id>
 ```
 
-### Eventos
+### Events
 
 ```bash
-# Todos
+# All events
 curl -H "Authorization: Bearer $TOKEN" $BASE_URL/events
 
-# Filtrado por dispositivo
+# Filter by device
 curl -H "Authorization: Bearer $TOKEN" "$BASE_URL/events?device_id=notebook-linux"
 
-# Deletar
+# Delete
 curl -X DELETE -H "Authorization: Bearer $TOKEN" $BASE_URL/events/<id>
 ```
 
@@ -211,41 +219,43 @@ curl -H "Authorization: Bearer $TOKEN" $BASE_URL/status
 
 ---
 
-## Lógica de status
+## Status logic
 
-Para cada combinação **device + task**:
+For each **device + task** combination:
 
-| Condição | Status |
+| Condition | Status |
 |---|---|
-| Último `success` há menos de 24h | Healthy |
-| Último `success` entre 24h e 72h | Warning |
-| Último `success` há mais de 72h | Critical |
-| Último evento é `error` | Critical |
+| Last `success` less than 24h ago | Healthy |
+| Last `success` between 24h and 72h ago | Warning |
+| Last `success` more than 72h ago | Critical |
+| Last event is `error` | Critical |
 
-Os thresholds de 24h/72h são os padrões e podem ser sobrescritos por task via `warning_hours` / `critical_hours`.
+The 24h/72h thresholds are defaults and can be overridden per task via `warning_hours` / `critical_hours`.
 
 ---
 
-## Estrutura
+## Structure
 
 ```
 backup-manager/
+├── package.json           # root scripts shortcut
 ├── firebase.json
 ├── .firebaserc
 ├── functions/
 │   ├── src/
-│   │   ├── index.ts       # exports das 6 functions
+│   │   ├── index.ts       # 6 function exports
 │   │   ├── types.ts
 │   │   ├── db/database.ts
 │   │   ├── middleware/
 │   │   ├── routes/
 │   │   └── services/
-│   ├── .env               # variáveis de ambiente (gitignored)
-│   ├── .env.example       # template das variáveis
+│   ├── .env               # environment variables (gitignored)
+│   ├── .env.example       # variable template
 │   └── package.json
 └── frontend/
-    ├── .env             # variáveis de ambiente (gitignored)
-    ├── .env.example     # template das variáveis
+    ├── .env               # production API URL (gitignored)
+    ├── .env.local         # local dev API URL (gitignored)
+    ├── .env.example       # variable template (emulator URL)
     └── src/
         ├── components/
         ├── pages/
