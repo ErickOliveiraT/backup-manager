@@ -6,9 +6,8 @@ import { calculateStatus } from '../services/statusService.js'
 
 const router = Router()
 
-router.get('/', (_req: Request, res: Response) => {
-  const events = getEvents()
-  const tasks = getTasks()
+router.get('/', async (_req: Request, res: Response) => {
+  const [events, tasks] = await Promise.all([getEvents(), getTasks()])
   res.json(calculateStatus(events, tasks))
 })
 

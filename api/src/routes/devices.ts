@@ -4,8 +4,8 @@ import { getDevices, addDevice, deviceExists } from '../services/deviceService.j
 
 const router = Router()
 
-router.get('/', (_req: Request, res: Response) => {
-  res.json(getDevices())
+router.get('/', async (_req: Request, res: Response) => {
+  res.json(await getDevices())
 })
 
 router.post('/', async (req: Request, res: Response) => {
@@ -19,7 +19,7 @@ router.post('/', async (req: Request, res: Response) => {
     res.status(400).json({ error: 'Field "name" is required' })
     return
   }
-  if (deviceExists(id)) {
+  if (await deviceExists(id)) {
     res.status(409).json({ error: `Device "${id}" already exists` })
     return
   }

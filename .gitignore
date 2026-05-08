@@ -4,3 +4,5 @@ api/node_modules/*
 frontend/node_modules/*
 api/db/*
 api/dist/*
+api/backup-manager.json
+api/.env

@@ -4,8 +4,8 @@ import { getTasks, addTask, updateTask, deleteTask, taskExists } from '../servic
 
 const router = Router()
 
-router.get('/', (_req: Request, res: Response) => {
-  res.json(getTasks())
+router.get('/', async (_req: Request, res: Response) => {
+  res.json(await getTasks())
 })
 
 router.post('/', async (req: Request, res: Response) => {
@@ -19,7 +19,7 @@ router.post('/', async (req: Request, res: Response) => {
     res.status(400).json({ error: 'Field "task" is required' })
     return
   }
-  if (taskExists(device_id, task)) {
+  if (await taskExists(device_id, task)) {
     res.status(409).json({ error: `Task "${task}" already exists for device "${device_id}"` })
     return
   }

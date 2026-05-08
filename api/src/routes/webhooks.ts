@@ -27,7 +27,7 @@ router.post('/sync', async (req: Request, res: Response) => {
 
   const event = await addEvent(payload)
 
-  if (!taskExists(payload.device_id, payload.task)) {
+  if (!(await taskExists(payload.device_id, payload.task))) {
     await addTask({ device_id: payload.device_id, task: payload.task })
   }
 

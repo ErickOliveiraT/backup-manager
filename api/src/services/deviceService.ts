@@ -1,18 +1,18 @@
-import { getDb } from '../db/database.js'
+import { devicesCol } from '../db/database.js'
 import type { Device } from '../types.js'
 
-export function getDevices(): Device[] {
-  return getDb().data.devices
+export async function getDevices(): Promise<Device[]> {
+  const snap = await devicesCol.get()
+  return snap.docs.map((d) => d.data() as Device)
 }
 
 export async function addDevice(payload: { id: string; name: string }): Promise<Device> {
-  const db = getDb()
   const device: Device = { ...payload, created_at: new Date().toISOString() }
-  db.data.devices.push(device)
-  await db.write()
+  await devicesCol.doc(device.id).set(device)
   return device
 }
 
-export function deviceExists(id: string): boolean {
-  return getDb().data.devices.some((d) => d.id === id)
+export async function deviceExists(id: string): Promise<boolean> {
+  const snap = await devicesCol.doc(id).get()
+  return snap.exists
 }
