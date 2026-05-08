@@ -1,15 +1,38 @@
 import type { Device, BackupEvent, StatusEntry, Task } from '../types'
+import { getToken, clearToken } from './auth'
 
 const BASE_URL = 'http://localhost:3001'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, options)
+  const token = getToken()
+  const headers: Record<string, string> = {
+    ...(options?.headers as Record<string, string>),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers })
+
+  if (res.status === 401 && path !== '/auth/login') {
+    clearToken()
+    window.location.replace('/login')
+    return new Promise(() => {})
+  }
+
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.error ?? `Request failed: ${res.status}`)
   }
+
+  if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
 }
+
+export const login = (username: string, password: string) =>
+  request<{ token: string }>('/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  })
 
 export const fetchStatus = () => request<StatusEntry[]>('/status')
 

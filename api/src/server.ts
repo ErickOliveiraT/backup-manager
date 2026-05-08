@@ -1,6 +1,8 @@
 import './db/database.js'
 import express from 'express'
 import cors from 'cors'
+import { requireAuth } from './middleware/auth.js'
+import authRouter from './routes/auth.js'
 import webhooksRouter from './routes/webhooks.js'
 import devicesRouter from './routes/devices.js'
 import eventsRouter from './routes/events.js'
@@ -12,7 +14,12 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
+// Public routes
+app.use('/auth', authRouter)
 app.use('/webhooks', webhooksRouter)
+
+// Protected routes
+app.use(requireAuth)
 app.use('/devices', devicesRouter)
 app.use('/events', eventsRouter)
 app.use('/status', statusRouter)

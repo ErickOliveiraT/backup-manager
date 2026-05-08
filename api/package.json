@@ -13,11 +13,13 @@
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "firebase-admin": "^13.9.0",
+    "jsonwebtoken": "^9.0.3",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.15.3",
     "@types/uuid": "^10.0.0",
     "tsx": "^4.19.4",

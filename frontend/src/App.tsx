@@ -1,11 +1,13 @@
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { Shield } from 'lucide-react'
 import { Navbar } from './components/Navbar'
 import { Dashboard } from './pages/Dashboard'
 import { DevicesPage } from './pages/DevicesPage'
 import { TasksPage } from './pages/TasksPage'
 import { EventsPage } from './pages/EventsPage'
+import { LoginPage } from './pages/LoginPage'
 import { LastUpdatedProvider } from './context/LastUpdatedContext'
+import { isAuthenticated } from './services/auth'
 
 function AppFooter() {
   return (
@@ -29,37 +31,54 @@ function Layout({ children }: { children: React.ReactNode }) {
   )
 }
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  if (!isAuthenticated()) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
 const router = createBrowserRouter([
+  {
+    path: '/login',
+    element: <LoginPage />,
+  },
   {
     path: '/',
     element: (
-      <Layout>
-        <Dashboard />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <Dashboard />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/devices',
     element: (
-      <Layout>
-        <DevicesPage />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <DevicesPage />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/tasks',
     element: (
-      <Layout>
-        <TasksPage />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <TasksPage />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
   {
     path: '/events',
     element: (
-      <Layout>
-        <EventsPage />
-      </Layout>
+      <ProtectedRoute>
+        <Layout>
+          <EventsPage />
+        </Layout>
+      </ProtectedRoute>
     ),
   },
 ])
