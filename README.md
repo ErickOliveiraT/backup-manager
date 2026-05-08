@@ -102,7 +102,7 @@ npm run frontend:build # build frontend for production
 | `auth` | `POST /auth/login` | public |
 | `webhooks` | `POST /webhooks/sync` | api_key in body |
 | `devices` | `GET/POST /devices`, `PATCH /devices/:id` | JWT |
-| `events` | `GET /events`, `DELETE /events/:id` | JWT |
+| `events` | `GET /events`, `DELETE /events/:id` | JWT | supports pagination and filters |
 | `tasks` | `GET/POST/PATCH/DELETE /tasks` | JWT |
 | `status` | `GET /status` | JWT |
 
@@ -201,15 +201,40 @@ curl -X DELETE -H "Authorization: Bearer $TOKEN" $BASE_URL/tasks/<id>
 ### Events
 
 ```bash
-# All events
+# All events (paginated, 25 per page by default)
 curl -H "Authorization: Bearer $TOKEN" $BASE_URL/events
+
+# Pagination
+curl -H "Authorization: Bearer $TOKEN" "$BASE_URL/events?page=2&limit=50"
 
 # Filter by device
 curl -H "Authorization: Bearer $TOKEN" "$BASE_URL/events?device_id=notebook-linux"
 
+# Filter by status
+curl -H "Authorization: Bearer $TOKEN" "$BASE_URL/events?status=error"
+
+# Filter by date range
+curl -H "Authorization: Bearer $TOKEN" "$BASE_URL/events?date_from=2026-05-01&date_to=2026-05-08"
+
+# Combine filters
+curl -H "Authorization: Bearer $TOKEN" "$BASE_URL/events?device_id=notebook-linux&status=error&page=1&limit=25"
+
 # Delete
 curl -X DELETE -H "Authorization: Bearer $TOKEN" $BASE_URL/events/<id>
 ```
+
+Response format:
+
+```json
+{
+  "data": [...],
+  "total": 243,
+  "page": 1,
+  "pages": 10
+}
+```
+
+Supported query parameters: `device_id`, `status` (`success` | `error`), `date_from` (YYYY-MM-DD), `date_to` (YYYY-MM-DD), `page` (default: 1), `limit` (default: 25, max: 100).
 
 ### Status
 
