@@ -6,3 +6,5 @@ functions/node_modules/*
 functions/dist/*
 functions/.env
 functions/*.log
+frontend/dist/*
+.firebase/*

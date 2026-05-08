@@ -26,7 +26,7 @@ fi
 
 if $DEPLOY_CLIENT; then
   echo "==> Building & deploying client..."
-  cd client
+  cd frontend
   npm run deploy
   cd ..
   echo "==> Client deployed."
