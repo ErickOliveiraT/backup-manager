@@ -10,7 +10,9 @@ function relativeTime(date: Date | null): string {
   if (diff < 60) return `${diff}s ago`
   const mins = Math.floor(diff / 60)
   if (mins < 60) return `${mins}m ago`
-  return `${Math.floor(mins / 60)}h ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
 }
 
 const activeLinkClass = 'bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors'

@@ -5,7 +5,6 @@ import {
   Grid2x2, List, Plus,
 } from 'lucide-react'
 import { fetchStatus, fetchDevices, fetchEvents } from '../services/api'
-import { usePolling } from '../hooks/usePolling'
 import { useLastUpdated } from '../context/LastUpdatedContext'
 import { StatusCard } from '../components/StatusCard'
 import { StatCard } from '../components/StatCard'
@@ -67,8 +66,6 @@ export function Dashboard() {
   useEffect(() => {
     setRefresh(refreshAll)
   }, [setRefresh, refreshAll])
-
-  usePolling(refreshAll, 10_000)
 
   const healthy = statusList.filter((e) => e.status === 'healthy').length
   const warnings = statusList.filter((e) => e.status === 'warning').length
