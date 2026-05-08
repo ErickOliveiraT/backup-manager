@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { fetchTasks, fetchDevices, createTask, updateTask, deleteTask } from '../services/api'
 import { useLastUpdated } from '../context/LastUpdatedContext'
 import { TableSkeleton } from '../components/Skeleton'
+import { WebhookModal } from '../components/WebhookModal'
 import type { Task, Device } from '../types'
 
 interface EditState {
@@ -18,6 +19,7 @@ export function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([])
   const [devices, setDevices] = useState<Device[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [webhookTask, setWebhookTask] = useState<Task | null>(null)
   const [editForm, setEditForm] = useState<EditState>({ cron: '', warning_hours: '', critical_hours: '' })
   const [addForm, setAddForm] = useState({ device_id: '', task: '', cron: '', warning_hours: '', critical_hours: '' })
   const [editError, setEditError] = useState('')
@@ -92,6 +94,7 @@ export function TasksPage() {
   const inputCls = 'bg-gray-900 border border-gray-600 text-gray-200 text-xs rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-600'
 
   return (
+    <>
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
       <section>
         <h1 className="text-white text-2xl font-bold mb-4">Tasks</h1>
@@ -164,6 +167,7 @@ export function TasksPage() {
                       <td className="px-4 py-3">{t.critical_hours !== undefined ? t.critical_hours : <span className="text-gray-600">default</span>}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-3">
+                          <button onClick={() => setWebhookTask(t)} className="text-xs text-gray-400 hover:text-gray-200 transition-colors">Payload</button>
                           <button onClick={() => startEdit(t)} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Edit</button>
                           <button onClick={() => handleDelete(t.id)} className="text-xs text-red-500 hover:text-red-400 transition-colors">Delete</button>
                         </div>
@@ -246,5 +250,10 @@ export function TasksPage() {
         </form>
       </section>
     </div>
+
+    {webhookTask && (
+      <WebhookModal task={webhookTask} onClose={() => setWebhookTask(null)} />
+    )}
+    </>
   )
 }
