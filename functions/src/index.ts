@@ -12,7 +12,7 @@ import tasksRouter from './routes/tasks.js'
 
 function makeApp(router: express.Router, { protected: isProtected } = { protected: false }) {
   const app = express()
-  app.use(cors({ origin: true }))
+  app.use(cors())
   app.use(express.json())
   if (isProtected) app.use(requireAuth)
   app.use('/', router)
