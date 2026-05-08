@@ -5,3 +5,4 @@ frontend/.env
 functions/node_modules/*
 functions/dist/*
 functions/.env
+functions/*.log
