@@ -75,6 +75,9 @@ export const createTask = (data: {
 export const deleteTask = (id: string) =>
   request<void>(`/tasks/${id}`, { method: 'DELETE' })
 
+export const deleteDevice = (id: string) =>
+  request<void>(`/devices/${id}`, { method: 'DELETE' })
+
 export const deleteEvent = (id: string) =>
   request<void>(`/events/${id}`, { method: 'DELETE' })
 

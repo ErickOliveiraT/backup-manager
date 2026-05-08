@@ -22,6 +22,7 @@ export function TasksPage() {
   const [webhookTask, setWebhookTask] = useState<Task | null>(null)
   const [editForm, setEditForm] = useState<EditState>({ cron: '', warning_hours: '', critical_hours: '' })
   const [addForm, setAddForm] = useState({ device_id: '', task: '', cron: '', warning_hours: '', critical_hours: '' })
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [editError, setEditError] = useState('')
   const [addError, setAddError] = useState('')
   const [loading, setLoading] = useState(true)
@@ -68,8 +69,9 @@ export function TasksPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDeleteConfirm = async (id: string) => {
     await deleteTask(id)
+    setConfirmingId(null)
     await load()
   }
 
@@ -118,7 +120,31 @@ export function TasksPage() {
               </thead>
               <tbody>
                 {tasks.map((t, i) => (
-                  editingId === t.id ? (
+                  confirmingId === t.id ? (
+                    <tr key={taskKey(t)} className="bg-red-950/40">
+                      <td colSpan={6} className="px-4 py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-red-300 text-xs">
+                            Delete task <span className="font-mono text-red-200">{t.task}</span> from <span className="font-mono text-red-200">{t.device_id}</span>? This cannot be undone.
+                          </span>
+                          <div className="flex gap-2 shrink-0">
+                            <button
+                              onClick={() => handleDeleteConfirm(t.id)}
+                              className="text-xs bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded transition-colors"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setConfirmingId(null)}
+                              className="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : editingId === t.id ? (
                     <tr key={taskKey(t)} className="bg-gray-700/60">
                       <td className="px-4 py-2 font-mono text-indigo-400 text-xs">{t.device_id}</td>
                       <td className="px-4 py-2 font-mono text-xs">{t.task}</td>
@@ -169,7 +195,7 @@ export function TasksPage() {
                         <div className="flex gap-3">
                           <button onClick={() => setWebhookTask(t)} className="text-xs text-gray-400 hover:text-gray-200 transition-colors">Payload</button>
                           <button onClick={() => startEdit(t)} className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Edit</button>
-                          <button onClick={() => handleDelete(t.id)} className="text-xs text-red-500 hover:text-red-400 transition-colors">Delete</button>
+                          <button onClick={() => setConfirmingId(t.id)} className="text-xs text-red-500 hover:text-red-400 transition-colors">Delete</button>
                         </div>
                       </td>
                     </tr>

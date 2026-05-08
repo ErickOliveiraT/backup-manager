@@ -24,3 +24,11 @@ export async function updateDevice(id: string, name: string): Promise<Device | n
   await docRef.update({ name })
   return { ...(snap.data() as Device), name }
 }
+
+export async function deleteDevice(id: string): Promise<boolean> {
+  const docRef = devicesCol.doc(id)
+  const snap = await docRef.get()
+  if (!snap.exists) return false
+  await docRef.delete()
+  return true
+}

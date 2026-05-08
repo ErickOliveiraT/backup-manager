@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchDevices, createDevice, updateDevice } from '../services/api'
+import { fetchDevices, createDevice, updateDevice, deleteDevice } from '../services/api'
 import { useLastUpdated } from '../context/LastUpdatedContext'
 import { TableSkeleton } from '../components/Skeleton'
 import type { Device } from '../types'
@@ -10,6 +10,7 @@ export function DevicesPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editError, setEditError] = useState('')
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [addError, setAddError] = useState('')
   const [loading, setLoading] = useState(true)
   const { setRefresh } = useLastUpdated()
@@ -34,6 +35,12 @@ export function DevicesPage() {
   const cancelEdit = () => {
     setEditingId(null)
     setEditError('')
+  }
+
+  const handleDeleteConfirm = async (id: string) => {
+    await deleteDevice(id)
+    setConfirmingId(null)
+    await load()
   }
 
   const saveEdit = async (id: string) => {
@@ -120,6 +127,30 @@ export function DevicesPage() {
                         </div>
                       </td>
                     </tr>
+                  ) : confirmingId === d.id ? (
+                    <tr key={d.id} className="bg-red-950/40">
+                      <td colSpan={4} className="px-4 py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <span className="text-red-300 text-xs">
+                            Delete device <span className="font-mono text-red-200">{d.id}</span>? This cannot be undone.
+                          </span>
+                          <div className="flex gap-2 shrink-0">
+                            <button
+                              onClick={() => handleDeleteConfirm(d.id)}
+                              className="text-xs bg-red-600 hover:bg-red-500 text-white px-2 py-1 rounded transition-colors"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={() => setConfirmingId(null)}
+                              className="text-xs text-gray-400 hover:text-gray-200 px-2 py-1 rounded transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
                   ) : (
                     <tr key={d.id} className={i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/50'}>
                       <td className="px-4 py-3 font-mono text-indigo-400 text-xs">{d.id}</td>
@@ -128,12 +159,20 @@ export function DevicesPage() {
                         {new Date(d.created_at).toLocaleDateString()}
                       </td>
                       <td className="px-4 py-3">
-                        <button
-                          onClick={() => startEdit(d)}
-                          className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                        >
-                          Edit
-                        </button>
+                        <div className="flex gap-3">
+                          <button
+                            onClick={() => startEdit(d)}
+                            className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => setConfirmingId(d.id)}
+                            className="text-xs text-red-500 hover:text-red-400 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )

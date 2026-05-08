@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
-import { getDevices, addDevice, deviceExists, updateDevice } from '../services/deviceService.js'
+import { getDevices, addDevice, deviceExists, updateDevice, deleteDevice } from '../services/deviceService.js'
 
 const router = Router()
 
@@ -40,6 +40,15 @@ router.patch('/:id', async (req: Request<{ id: string }>, res: Response) => {
     return
   }
   res.json(updated)
+})
+
+router.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
+  const deleted = await deleteDevice(req.params.id)
+  if (!deleted) {
+    res.status(404).json({ error: `Device "${req.params.id}" not found` })
+    return
+  }
+  res.status(204).send()
 })
 
 export default router
