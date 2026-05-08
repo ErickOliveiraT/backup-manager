@@ -83,8 +83,9 @@ export function Dashboard() {
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   )[0]
 
-  const eventCountByDevice = events.reduce<Record<string, number>>((acc, e) => {
-    acc[e.device_id] = (acc[e.device_id] ?? 0) + 1
+  const eventCountByTask = events.reduce<Record<string, number>>((acc, e) => {
+    const key = `${e.device_id}:${e.task}`
+    acc[key] = (acc[key] ?? 0) + 1
     return acc
   }, {})
 
@@ -227,7 +228,7 @@ export function Dashboard() {
             <StatusCard
               key={`${entry.device_id}:${entry.task}`}
               entry={entry}
-              eventCount={eventCountByDevice[entry.device_id] ?? 0}
+              eventCount={eventCountByTask[`${entry.device_id}:${entry.task}`] ?? 0}
               deviceName={deviceNameMap[entry.device_id]}
             />
           ))}
@@ -248,7 +249,7 @@ export function Dashboard() {
             <StatusCard
               key={`${entry.device_id}:${entry.task}`}
               entry={entry}
-              eventCount={eventCountByDevice[entry.device_id] ?? 0}
+              eventCount={eventCountByTask[`${entry.device_id}:${entry.task}`] ?? 0}
               compact
             />
           ))}

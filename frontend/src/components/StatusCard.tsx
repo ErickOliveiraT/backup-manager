@@ -41,7 +41,7 @@ export function StatusCard({ entry, eventCount, deviceName, compact = false }: P
         </div>
         <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${badge}`}>{label}</span>
         <span className="text-gray-500 text-xs shrink-0">{timeAgo(entry.last_event.timestamp)}</span>
-        <span className="text-gray-600 text-xs shrink-0">{eventCount} events</span>
+        <span className="text-gray-600 text-xs shrink-0">{eventCount} {eventCount === 1 ? 'event' : 'events'}</span>
       </div>
     )
   }
@@ -69,7 +69,7 @@ export function StatusCard({ entry, eventCount, deviceName, compact = false }: P
 
         <div className="flex items-center justify-between pt-2 border-t border-[#2a3040] text-gray-500 text-xs">
           <span>{timeAgo(entry.last_event.timestamp)}</span>
-          <span>{eventCount} events</span>
+          <span>{eventCount} {eventCount === 1 ? 'event' : 'events'}</span>
         </div>
       </div>
       <div className={`h-1 w-full ${bar}`} />
