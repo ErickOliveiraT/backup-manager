@@ -26,6 +26,7 @@ export function TasksPage() {
   const [editError, setEditError] = useState('')
   const [addError, setAddError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [deviceFilter, setDeviceFilter] = useState('')
   const { setRefresh } = useLastUpdated()
 
   const load = useCallback(async () => {
@@ -95,16 +96,32 @@ export function TasksPage() {
 
   const inputCls = 'bg-gray-900 border border-gray-600 text-gray-200 text-xs rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-600'
 
+  const filteredTasks = deviceFilter ? tasks.filter((t) => t.device_id === deviceFilter) : tasks
+
   return (
     <>
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
       <section>
-        <h1 className="text-white text-2xl font-bold mb-4">Tasks</h1>
+        <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+          <h1 className="text-white text-2xl font-bold">Tasks</h1>
+          {!loading && devices.length > 0 && (
+            <select
+              value={deviceFilter}
+              onChange={(e) => setDeviceFilter(e.target.value)}
+              className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">All devices</option>
+              {devices.map((d) => (
+                <option key={d.id} value={d.id}>{d.name || d.id}</option>
+              ))}
+            </select>
+          )}
+        </div>
 
         {loading ? (
           <TableSkeleton cols={6} />
-        ) : tasks.length === 0 ? (
-          <p className="text-gray-500 text-sm">No tasks found. They are created automatically when a webhook arrives, or manually below.</p>
+        ) : filteredTasks.length === 0 ? (
+          <p className="text-gray-500 text-sm">{tasks.length === 0 ? 'No tasks found. They are created automatically when a webhook arrives, or manually below.' : 'No tasks for this device.'}</p>
         ) : (
           <div className="overflow-hidden rounded-xl border border-gray-700">
             <table className="w-full text-sm text-left text-gray-300">
@@ -119,7 +136,7 @@ export function TasksPage() {
                 </tr>
               </thead>
               <tbody>
-                {tasks.map((t, i) => (
+                {filteredTasks.map((t, i) => (
                   confirmingId === t.id ? (
                     <tr key={taskKey(t)} className="bg-red-950/40">
                       <td colSpan={6} className="px-4 py-3">
