@@ -1,6 +1,7 @@
 prompt.md
 CLAUDE.md
 frontend/node_modules/*
+frontend/.env
 functions/node_modules/*
 functions/dist/*
 functions/.env

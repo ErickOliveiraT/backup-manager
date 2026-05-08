@@ -77,11 +77,13 @@ npm run dev
 # Rodando em http://localhost:5173
 ```
 
-O frontend lê `VITE_API_BASE_URL` para saber onde está a API. O arquivo `frontend/.env.local` já aponta para o emulador local. Para produção, crie `frontend/.env.production`:
+O frontend lê `VITE_API_BASE_URL` para saber onde está a API. Copie o exemplo e ajuste conforme o ambiente:
 
+```bash
+cp frontend/.env.example frontend/.env
 ```
-VITE_API_BASE_URL=https://us-central1-backup-manager-2ae79.cloudfunctions.net
-```
+
+O arquivo `frontend/.env` está no `.gitignore`. O `.env.example` serve de template com a URL do emulador local.
 
 ---
 
@@ -256,6 +258,8 @@ backup-manager/
 │   ├── .env.example       # template das variáveis
 │   └── package.json
 └── frontend/
+    ├── .env             # variáveis de ambiente (gitignored)
+    ├── .env.example     # template das variáveis
     └── src/
         ├── components/
         ├── pages/
