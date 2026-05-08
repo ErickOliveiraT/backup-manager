@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
 import { addEvent } from '../services/eventService.js'
+import { deviceExists, addDevice } from '../services/deviceService.js'
 import { taskExists, addTask } from '../services/taskService.js'
 import type { BackupEvent } from '../types.js'
 
@@ -27,9 +28,14 @@ router.post('/sync', async (req: Request, res: Response) => {
 
   const event = await addEvent(payload)
 
-  if (!(await taskExists(payload.device_id, payload.task))) {
-    await addTask({ device_id: payload.device_id, task: payload.task })
-  }
+  await Promise.all([
+    deviceExists(payload.device_id).then((exists) => {
+      if (!exists) return addDevice({ id: payload.device_id, name: payload.device_id })
+    }),
+    taskExists(payload.device_id, payload.task).then((exists) => {
+      if (!exists) return addTask({ device_id: payload.device_id, task: payload.task })
+    }),
+  ])
 
   res.status(201).json(event)
 })
