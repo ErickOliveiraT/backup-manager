@@ -13,7 +13,13 @@ Sistema de monitoramento de backups que recebe eventos via webhook e exibe o est
 
 1. Baixe o arquivo de credenciais do Firebase Console em **Project Settings → Service Accounts → Generate new private key** e salve como `api/backup-manager.json`.
 
-2. Instale e rode:
+2. Defina a API key do webhook em `api/.env`:
+
+```
+WEBHOOK_API_KEY=seu-segredo-aqui
+```
+
+3. Instale e rode:
 
 ```bash
 cd api
@@ -56,11 +62,14 @@ curl http://localhost:3001/devices
 
 ### Webhook — enviar evento de backup
 
+O campo `api_key` é obrigatório em todas as requisições ao webhook. Requisições sem a key ou com key inválida recebem `401`.
+
 ```bash
 # Backup bem-sucedido
 curl -X POST http://localhost:3001/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
+    "api_key": "seu-segredo-aqui",
     "device_id": "notebook-linux",
     "source": "opensync",
     "task": "documents-backup",
@@ -72,6 +81,7 @@ curl -X POST http://localhost:3001/webhooks/sync \
 curl -X POST http://localhost:3001/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
+    "api_key": "seu-segredo-aqui",
     "device_id": "notebook-linux",
     "source": "rsync",
     "task": "system-backup",
@@ -83,6 +93,7 @@ curl -X POST http://localhost:3001/webhooks/sync \
 curl -X POST http://localhost:3001/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
+    "api_key": "seu-segredo-aqui",
     "device_id": "galaxy-s23",
     "source": "android",
     "task": "photos-backup",
@@ -94,6 +105,7 @@ curl -X POST http://localhost:3001/webhooks/sync \
 curl -X POST http://localhost:3001/webhooks/sync \
   -H "Content-Type: application/json" \
   -d "{
+    \"api_key\": \"seu-segredo-aqui\",
     \"device_id\": \"notebook-linux\",
     \"source\": \"opensync\",
     \"task\": \"documents-backup\",
@@ -102,7 +114,7 @@ curl -X POST http://localhost:3001/webhooks/sync \
   }"
 ```
 
-> O webhook cria automaticamente a task se ela ainda não existir.
+> O webhook cria automaticamente o device e a task caso ainda não existam.
 
 ### Tasks
 

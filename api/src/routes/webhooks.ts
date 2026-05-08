@@ -9,8 +9,16 @@ const router = Router()
 
 const REQUIRED = ['device_id', 'source', 'task', 'status', 'timestamp'] as const
 
+const WEBHOOK_API_KEY = process.env.WEBHOOK_API_KEY
+if (!WEBHOOK_API_KEY) throw new Error('WEBHOOK_API_KEY is not set in environment')
+
 router.post('/sync', async (req: Request, res: Response) => {
   const body = req.body as Record<string, unknown>
+
+  if (body.api_key !== WEBHOOK_API_KEY) {
+    res.status(401).json({ error: 'Invalid or missing api_key' })
+    return
+  }
 
   const missing = REQUIRED.filter((field) => !body[field])
   if (missing.length > 0) {
