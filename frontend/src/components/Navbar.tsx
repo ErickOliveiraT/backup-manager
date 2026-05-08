@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
-import { NavLink } from 'react-router-dom'
-import { Shield, RefreshCw } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { Shield, RefreshCw, LogOut } from 'lucide-react'
 import { useLastUpdated } from '../context/LastUpdatedContext'
+import { clearToken } from '../services/auth'
 
 function relativeTime(date: Date | null): string {
   if (!date) return '—'
@@ -19,6 +20,12 @@ export function Navbar() {
   const { lastUpdated, refresh } = useLastUpdated()
   const [, forceRender] = useState(0)
   const [spinning, setSpinning] = useState(false)
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    clearToken()
+    navigate('/login')
+  }
 
   useEffect(() => {
     const id = setInterval(() => forceRender((n) => n + 1), 1000)
@@ -61,6 +68,9 @@ export function Navbar() {
           <span>Last updated: {relativeTime(lastUpdated)}</span>
           <button onClick={handleRefresh} className="hover:text-white transition-colors">
             <RefreshCw size={14} className={spinning ? 'animate-spin' : ''} />
+          </button>
+          <button onClick={handleLogout} className="hover:text-white transition-colors" title="Logout">
+            <LogOut size={14} />
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { fetchTasks, fetchDevices, createTask, updateTask, deleteTask } from '../services/api'
 import { useLastUpdated } from '../context/LastUpdatedContext'
+import { TableSkeleton } from '../components/Skeleton'
 import type { Task, Device } from '../types'
 
 interface EditState {
@@ -96,7 +97,7 @@ export function TasksPage() {
         <h1 className="text-white text-2xl font-bold mb-4">Tasks</h1>
 
         {loading ? (
-          <p className="text-gray-500 text-sm">Loading...</p>
+          <TableSkeleton cols={6} />
         ) : tasks.length === 0 ? (
           <p className="text-gray-500 text-sm">No tasks found. They are created automatically when a webhook arrives, or manually below.</p>
         ) : (

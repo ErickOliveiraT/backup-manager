@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { CheckCircle, XCircle } from 'lucide-react'
 import { fetchEvents, fetchDevices, deleteEvent } from '../services/api'
 import { useLastUpdated } from '../context/LastUpdatedContext'
+import { TableSkeleton } from '../components/Skeleton'
 import type { BackupEvent, Device } from '../types'
 
 function formatTimestamp(iso: string): string {
@@ -68,7 +69,7 @@ export function EventsPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500 text-sm">Loading...</p>
+        <TableSkeleton cols={6} />
       ) : events.length === 0 ? (
         <p className="text-gray-500 text-sm">No events found.</p>
       ) : (

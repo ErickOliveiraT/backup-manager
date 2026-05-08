@@ -12,6 +12,7 @@ import { StatCard } from '../components/StatCard'
 import { DonutChart } from '../components/DonutChart'
 import { BarChart } from '../components/BarChart'
 import { RecentEventsList } from '../components/RecentEventsList'
+import { StatusCardSkeleton } from '../components/Skeleton'
 import type { StatusEntry, Device, BackupEvent } from '../types'
 
 type ViewMode = 'grid' | 'list'
@@ -217,7 +218,9 @@ export function Dashboard() {
 
       {/* Cards grid / list */}
       {loading ? (
-        <p className="text-gray-500 text-sm">Loading...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => <StatusCardSkeleton key={i} />)}
+        </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filtered.map((entry) => (

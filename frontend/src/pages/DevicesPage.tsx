@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { fetchDevices, createDevice, updateDevice } from '../services/api'
 import { useLastUpdated } from '../context/LastUpdatedContext'
+import { TableSkeleton } from '../components/Skeleton'
 import type { Device } from '../types'
 
 export function DevicesPage() {
@@ -65,7 +66,7 @@ export function DevicesPage() {
       <section>
         <h1 className="text-white text-2xl font-bold mb-4">Devices</h1>
         {loading ? (
-          <p className="text-gray-500 text-sm">Loading...</p>
+          <TableSkeleton cols={4} />
         ) : devices.length === 0 ? (
           <p className="text-gray-500 text-sm">No devices registered.</p>
         ) : (
