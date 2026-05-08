@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { CheckCircle, XCircle } from 'lucide-react'
 import { fetchEvents, fetchDevices, deleteEvent } from '../services/api'
+import { useLastUpdated } from '../context/LastUpdatedContext'
 import type { BackupEvent, Device } from '../types'
 
 function formatTimestamp(iso: string): string {
@@ -19,8 +20,9 @@ export function EventsPage() {
   const [deviceFilter, setDeviceFilter] = useState('')
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const { setRefresh } = useLastUpdated()
 
-  const load = async (filter = deviceFilter) => {
+  const load = useCallback(async (filter = deviceFilter) => {
     const [evs, devs] = await Promise.all([
       fetchEvents(filter || undefined),
       fetchDevices(),
@@ -31,9 +33,10 @@ export function EventsPage() {
     setEvents(sorted)
     setDevices(devs)
     setLoading(false)
-  }
+  }, [deviceFilter])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
+  useEffect(() => { setRefresh(() => load()) }, [setRefresh, load])
 
   const handleFilterChange = (value: string) => {
     setDeviceFilter(value)

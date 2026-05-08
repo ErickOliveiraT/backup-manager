@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { fetchTasks, fetchDevices, createTask, updateTask, deleteTask } from '../services/api'
+import { useLastUpdated } from '../context/LastUpdatedContext'
 import type { Task, Device } from '../types'
 
 interface EditState {
@@ -21,15 +22,17 @@ export function TasksPage() {
   const [editError, setEditError] = useState('')
   const [addError, setAddError] = useState('')
   const [loading, setLoading] = useState(true)
+  const { setRefresh } = useLastUpdated()
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const [t, d] = await Promise.all([fetchTasks(), fetchDevices()])
     setTasks(t)
     setDevices(d)
     setLoading(false)
-  }
+  }, [])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
+  useEffect(() => { setRefresh(load) }, [setRefresh, load])
 
   const startEdit = (task: Task) => {
     setEditingId(task.id)

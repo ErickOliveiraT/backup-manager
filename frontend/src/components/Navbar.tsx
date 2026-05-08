@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { NavLink } from 'react-router-dom'
 import { Shield, RefreshCw } from 'lucide-react'
 import { useLastUpdated } from '../context/LastUpdatedContext'
@@ -16,13 +16,20 @@ const activeLinkClass = 'bg-blue-600 text-white px-3 py-1.5 rounded-md text-sm f
 const inactiveLinkClass = 'text-gray-400 hover:bg-[#2a3040] hover:text-white px-3 py-1.5 rounded-md text-sm font-medium transition-colors'
 
 export function Navbar() {
-  const { lastUpdated } = useLastUpdated()
+  const { lastUpdated, refresh } = useLastUpdated()
   const [, forceRender] = useState(0)
+  const [spinning, setSpinning] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => forceRender((n) => n + 1), 1000)
     return () => clearInterval(id)
   }, [])
+
+  const handleRefresh = useCallback(() => {
+    setSpinning(true)
+    refresh()
+    setTimeout(() => setSpinning(false), 600)
+  }, [refresh])
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? activeLinkClass : inactiveLinkClass
@@ -52,8 +59,8 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-3 text-gray-400 text-xs">
           <span>Last updated: {relativeTime(lastUpdated)}</span>
-          <button className="hover:text-white transition-colors">
-            <RefreshCw size={14} />
+          <button onClick={handleRefresh} className="hover:text-white transition-colors">
+            <RefreshCw size={14} className={spinning ? 'animate-spin' : ''} />
           </button>
         </div>
       </div>

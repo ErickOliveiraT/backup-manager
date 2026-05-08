@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { fetchDevices, createDevice, updateDevice } from '../services/api'
+import { useLastUpdated } from '../context/LastUpdatedContext'
 import type { Device } from '../types'
 
 export function DevicesPage() {
@@ -10,16 +11,18 @@ export function DevicesPage() {
   const [editError, setEditError] = useState('')
   const [addError, setAddError] = useState('')
   const [loading, setLoading] = useState(true)
+  const { setRefresh } = useLastUpdated()
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       setDevices(await fetchDevices())
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
+  useEffect(() => { setRefresh(load) }, [setRefresh, load])
 
   const startEdit = (device: Device) => {
     setEditingId(device.id)

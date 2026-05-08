@@ -34,12 +34,18 @@ export function Dashboard() {
   const [filterStatus, setFilterStatus] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
   const [loading, setLoading] = useState(true)
-  const { setLastUpdated } = useLastUpdated()
+  const { setLastUpdated, setRefresh } = useLastUpdated()
 
-  const refreshStatus = useCallback(async () => {
+  const refreshAll = useCallback(async () => {
     try {
-      const data = await fetchStatus()
-      setStatusList(data)
+      const [statusData, devicesData, eventsData] = await Promise.all([
+        fetchStatus(),
+        fetchDevices(),
+        fetchEvents(),
+      ])
+      setStatusList(statusData)
+      setDevices(devicesData)
+      setEvents(eventsData)
       setLastUpdated(new Date())
     } catch (err) {
       console.error('Failed to fetch status', err)
@@ -49,23 +55,19 @@ export function Dashboard() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [statusData, devicesData, eventsData] = await Promise.all([
-          fetchStatus(),
-          fetchDevices(),
-          fetchEvents(),
-        ])
-        setStatusList(statusData)
-        setDevices(devicesData)
-        setEvents(eventsData)
-        setLastUpdated(new Date())
+        await refreshAll()
       } finally {
         setLoading(false)
       }
     }
     init()
-  }, [setLastUpdated])
+  }, [refreshAll])
 
-  usePolling(refreshStatus, 10_000)
+  useEffect(() => {
+    setRefresh(refreshAll)
+  }, [setRefresh, refreshAll])
+
+  usePolling(refreshAll, 10_000)
 
   const healthy = statusList.filter((e) => e.status === 'healthy').length
   const warnings = statusList.filter((e) => e.status === 'warning').length
