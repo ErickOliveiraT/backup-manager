@@ -87,6 +87,8 @@ export function Dashboard() {
     return acc
   }, {})
 
+  const deviceNameMap = Object.fromEntries(devices.map((d) => [d.id, d.name || d.id]))
+
   const perDeviceData = devices.map((d) => ({
     name: d.name || d.id,
     healthy: statusList.filter((e) => e.device_id === d.id && e.status === 'healthy').length,
@@ -223,6 +225,7 @@ export function Dashboard() {
               key={`${entry.device_id}:${entry.task}`}
               entry={entry}
               eventCount={eventCountByDevice[entry.device_id] ?? 0}
+              deviceName={deviceNameMap[entry.device_id]}
             />
           ))}
           <Link

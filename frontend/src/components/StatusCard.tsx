@@ -4,6 +4,7 @@ import type { StatusEntry } from '../types'
 interface Props {
   entry: StatusEntry
   eventCount: number
+  deviceName?: string
   compact?: boolean
 }
 
@@ -23,7 +24,8 @@ const STATUS_CONFIG = {
   critical: { dot: 'bg-red-500',    bar: 'bg-red-500',    badge: 'bg-red-500/10 text-red-400',       label: 'Critical' },
 }
 
-export function StatusCard({ entry, eventCount, compact = false }: Props) {
+export function StatusCard({ entry, eventCount, deviceName, compact = false }: Props) {
+  const displayName = deviceName ?? entry.device_id
   const { dot, bar, badge, label } = STATUS_CONFIG[entry.status]
   const cfg = entry.task_config
 
@@ -33,7 +35,7 @@ export function StatusCard({ entry, eventCount, compact = false }: Props) {
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${bar}`} />
         <div className="flex items-center gap-2 pl-2 min-w-0 flex-1">
           <span className={`w-2 h-2 rounded-full ${dot} shrink-0`} />
-          <span className="text-white font-semibold text-sm truncate">{entry.device_id}</span>
+          <span className="text-white font-semibold text-sm truncate">{displayName}</span>
           <span className="text-gray-600 text-xs">·</span>
           <span className="text-gray-400 text-xs font-mono truncate">{entry.task}</span>
         </div>
@@ -50,7 +52,7 @@ export function StatusCard({ entry, eventCount, compact = false }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <span className={`w-2.5 h-2.5 rounded-full ${dot} shrink-0`} />
-            <span className="text-white font-semibold text-sm truncate">{entry.device_id}</span>
+            <span className="text-white font-semibold text-sm truncate">{displayName}</span>
           </div>
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ml-2 ${badge}`}>{label}</span>
         </div>
