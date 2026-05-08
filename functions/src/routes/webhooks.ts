@@ -9,10 +9,13 @@ const router = Router()
 
 const REQUIRED = ['device_id', 'source', 'task', 'status', 'timestamp'] as const
 
-const WEBHOOK_API_KEY = process.env.WEBHOOK_API_KEY
-if (!WEBHOOK_API_KEY) throw new Error('WEBHOOK_API_KEY is not set in environment')
-
 router.post('/sync', async (req: Request, res: Response) => {
+  const WEBHOOK_API_KEY = process.env.WEBHOOK_API_KEY
+  if (!WEBHOOK_API_KEY) {
+    res.status(500).json({ error: 'Server misconfiguration' })
+    return
+  }
+
   const body = req.body as Record<string, unknown>
 
   if (body.api_key !== WEBHOOK_API_KEY) {

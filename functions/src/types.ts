@@ -30,9 +30,3 @@ export interface StatusEntry {
   status: 'healthy' | 'warning' | 'critical'
   task_config?: Task
 }
-
-export interface DbSchema {
-  devices: Device[]
-  events: BackupEvent[]
-  tasks: Task[]
-}

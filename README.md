@@ -4,28 +4,68 @@ Sistema de monitoramento de backups que recebe eventos via webhook e exibe o est
 
 ## Stack
 
-- **Backend**: Node.js + Express + TypeScript + Firebase Admin SDK (Firestore)
+- **Functions**: Node.js + TypeScript + Firebase Functions v2 + Express
+- **Banco de dados**: Firestore
 - **Frontend**: React + Vite + TypeScript + Tailwind CSS v4
 
 ## Setup
 
-### Backend
+### Pré-requisitos
 
-1. Baixe o arquivo de credenciais do Firebase Console em **Project Settings → Service Accounts → Generate new private key** e salve como `api/backup-manager.json`.
+- [Firebase CLI](https://firebase.google.com/docs/cli): `npm install -g firebase-tools`
+- Autenticado: `firebase login`
 
-2. Defina a API key do webhook em `api/.env`:
+### Firebase Functions
+
+#### Configurando as variáveis de ambiente
+
+Copie o arquivo de exemplo e preencha com os valores reais:
+
+```bash
+cp functions/.env.example functions/.env
+```
 
 ```
 WEBHOOK_API_KEY=seu-segredo-aqui
+LOGIN_USER=admin
+LOGIN_PASSWORD=sua-senha-aqui
+JWT_SECRET=seu-jwt-secret-aqui
 ```
 
-3. Instale e rode:
+O arquivo `functions/.env` é lido automaticamente pelo Firebase CLI tanto no emulador quanto no deploy. Ele está no `.gitignore`.
+
+#### Atualizando as variáveis
+
+Edite `functions/.env` diretamente e faça um novo deploy:
 
 ```bash
-cd api
-npm install
-npm run dev
-# Rodando em http://localhost:3001
+firebase deploy --only functions
+```
+
+#### Rodando localmente (emulador)
+
+1. Certifique-se de que `functions/.env` está preenchido.
+
+2. Instale as dependências e inicie o emulador:
+
+```bash
+cd functions && npm install
+cd ..
+firebase emulators:start --only functions
+```
+
+As functions ficam disponíveis em `http://127.0.0.1:5001/backup-manager-2ae79/us-central1/`.
+
+#### Deploy
+
+```bash
+firebase deploy --only functions
+```
+
+O build TypeScript roda automaticamente antes do deploy. As functions são publicadas em:
+
+```
+https://us-central1-backup-manager-2ae79.cloudfunctions.net/{nome-da-function}
 ```
 
 ### Frontend
@@ -37,36 +77,49 @@ npm run dev
 # Rodando em http://localhost:5173
 ```
 
-### Popular dados de exemplo
+O frontend lê `VITE_API_BASE_URL` para saber onde está a API. O arquivo `frontend/.env.local` já aponta para o emulador local. Para produção, crie `frontend/.env.production`:
 
-```bash
-cd api
-npm run seed
 ```
+VITE_API_BASE_URL=https://us-central1-backup-manager-2ae79.cloudfunctions.net
+```
+
+---
+
+## Functions
+
+| Function | Rota | Auth |
+|---|---|---|
+| `auth` | `POST /auth/login` | pública |
+| `webhooks` | `POST /webhooks/sync` | api_key no body |
+| `devices` | `GET/POST /devices`, `PATCH /devices/:id` | JWT |
+| `events` | `GET /events`, `DELETE /events/:id` | JWT |
+| `tasks` | `GET/POST/PATCH/DELETE /tasks` | JWT |
+| `status` | `GET /status` | JWT |
 
 ---
 
 ## API
 
-### Dispositivos
+> Nos exemplos abaixo, substitua `BASE_URL` por `http://127.0.0.1:5001/backup-manager-2ae79/us-central1` (emulador) ou `https://us-central1-backup-manager-2ae79.cloudfunctions.net` (produção).
+
+### Autenticação
 
 ```bash
-# Criar dispositivo
-curl -X POST http://localhost:3001/devices \
+curl -X POST $BASE_URL/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"id": "notebook-linux", "name": "Notebook Linux"}'
-
-# Listar dispositivos
-curl http://localhost:3001/devices
+  -d '{"username": "admin", "password": "sua-senha-aqui"}'
+# Retorna {"token": "..."}
 ```
+
+Use o token retornado no header `Authorization: Bearer <token>` nas demais requisições.
 
 ### Webhook — enviar evento de backup
 
-O campo `api_key` é obrigatório em todas as requisições ao webhook. Requisições sem a key ou com key inválida recebem `401`.
+O campo `api_key` é obrigatório. O webhook cria automaticamente o device e a task caso ainda não existam.
 
 ```bash
 # Backup bem-sucedido
-curl -X POST http://localhost:3001/webhooks/sync \
+curl -X POST $BASE_URL/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
     "api_key": "seu-segredo-aqui",
@@ -78,7 +131,7 @@ curl -X POST http://localhost:3001/webhooks/sync \
   }'
 
 # Backup com erro
-curl -X POST http://localhost:3001/webhooks/sync \
+curl -X POST $BASE_URL/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
     "api_key": "seu-segredo-aqui",
@@ -89,20 +142,8 @@ curl -X POST http://localhost:3001/webhooks/sync \
     "timestamp": "2026-05-07T04:15:00Z"
   }'
 
-# Evento de celular via Android
-curl -X POST http://localhost:3001/webhooks/sync \
-  -H "Content-Type: application/json" \
-  -d '{
-    "api_key": "seu-segredo-aqui",
-    "device_id": "galaxy-s23",
-    "source": "android",
-    "task": "photos-backup",
-    "status": "success",
-    "timestamp": "2026-05-07T06:00:00Z"
-  }'
-
-# Evento com timestamp relativo (agora)
-curl -X POST http://localhost:3001/webhooks/sync \
+# Timestamp relativo (agora)
+curl -X POST $BASE_URL/webhooks/sync \
   -H "Content-Type: application/json" \
   -d "{
     \"api_key\": \"seu-segredo-aqui\",
@@ -114,16 +155,28 @@ curl -X POST http://localhost:3001/webhooks/sync \
   }"
 ```
 
-> O webhook cria automaticamente o device e a task caso ainda não existam.
+### Dispositivos
+
+```bash
+# Listar
+curl -H "Authorization: Bearer $TOKEN" $BASE_URL/devices
+
+# Criar
+curl -X POST $BASE_URL/devices \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"id": "notebook-linux", "name": "Notebook Linux"}'
+```
 
 ### Tasks
 
 ```bash
-# Listar tasks
-curl http://localhost:3001/tasks
+# Listar
+curl -H "Authorization: Bearer $TOKEN" $BASE_URL/tasks
 
-# Criar task com thresholds customizados
-curl -X POST http://localhost:3001/tasks \
+# Criar com thresholds customizados
+curl -X POST $BASE_URL/tasks \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "device_id": "notebook-linux",
@@ -133,34 +186,39 @@ curl -X POST http://localhost:3001/tasks \
     "critical_hours": 336
   }'
 
-# Atualizar thresholds de uma task
-curl -X PATCH http://localhost:3001/tasks/<id> \
+# Atualizar thresholds
+curl -X PATCH $BASE_URL/tasks/<id> \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"warning_hours": 48, "critical_hours": 96}'
 
-# Remover cron de uma task (setar null)
-curl -X PATCH http://localhost:3001/tasks/<id> \
+# Remover cron (setar null)
+curl -X PATCH $BASE_URL/tasks/<id> \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"cron": null}'
 
-# Deletar task
-curl -X DELETE http://localhost:3001/tasks/<id>
+# Deletar
+curl -X DELETE -H "Authorization: Bearer $TOKEN" $BASE_URL/tasks/<id>
 ```
 
 ### Eventos
 
 ```bash
-# Todos os eventos
-curl http://localhost:3001/events
+# Todos
+curl -H "Authorization: Bearer $TOKEN" $BASE_URL/events
 
 # Filtrado por dispositivo
-curl "http://localhost:3001/events?device_id=notebook-linux"
+curl -H "Authorization: Bearer $TOKEN" "$BASE_URL/events?device_id=notebook-linux"
+
+# Deletar
+curl -X DELETE -H "Authorization: Bearer $TOKEN" $BASE_URL/events/<id>
 ```
 
 ### Status
 
 ```bash
-curl http://localhost:3001/status
+curl -H "Authorization: Bearer $TOKEN" $BASE_URL/status
 ```
 
 ---
@@ -184,22 +242,21 @@ Os thresholds de 24h/72h são os padrões e podem ser sobrescritos por task via 
 
 ```
 backup-manager/
-├── api/
+├── firebase.json
+├── .firebaserc
+├── functions/
 │   ├── src/
-│   │   ├── server.ts
+│   │   ├── index.ts       # exports das 6 functions
 │   │   ├── types.ts
-│   │   ├── db/database.ts       # inicialização do Firestore
+│   │   ├── db/database.ts
+│   │   ├── middleware/
 │   │   ├── routes/
 │   │   └── services/
-│   ├── scripts/
-│   │   ├── seed.ts              # popula dados de exemplo
-│   │   └── clear-events.ts      # limpa a coleção de eventos
-│   ├── .env                     # GOOGLE_APPLICATION_CREDENTIALS
-│   └── backup-manager.json      # service account (gitignored)
+│   ├── .env               # variáveis de ambiente (gitignored)
+│   ├── .env.example       # template das variáveis
+│   └── package.json
 └── frontend/
     └── src/
-        ├── App.tsx
-        ├── types.ts
         ├── components/
         ├── pages/
         ├── hooks/

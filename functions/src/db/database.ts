@@ -1,4 +1,3 @@
-import 'dotenv/config'
 import { initializeApp, applicationDefault, getApps } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
 

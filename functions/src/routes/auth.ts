@@ -4,15 +4,16 @@ import jwt from 'jsonwebtoken'
 
 const router = Router()
 
-const LOGIN_USER = process.env.LOGIN_USER
-const LOGIN_PASSWORD = process.env.LOGIN_PASSWORD
-const JWT_SECRET = process.env.JWT_SECRET
-
-if (!LOGIN_USER || !LOGIN_PASSWORD || !JWT_SECRET) {
-  throw new Error('LOGIN_USER, LOGIN_PASSWORD and JWT_SECRET must be set in environment')
-}
-
 router.post('/login', (req: Request, res: Response) => {
+  const LOGIN_USER = process.env.LOGIN_USER
+  const LOGIN_PASSWORD = process.env.LOGIN_PASSWORD
+  const JWT_SECRET = process.env.JWT_SECRET
+
+  if (!LOGIN_USER || !LOGIN_PASSWORD || !JWT_SECRET) {
+    res.status(500).json({ error: 'Server misconfiguration' })
+    return
+  }
+
   const { username, password } = req.body as Record<string, unknown>
 
   if (username !== LOGIN_USER || password !== LOGIN_PASSWORD) {

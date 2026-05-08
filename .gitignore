@@ -1,8 +1,6 @@
 prompt.md
 CLAUDE.md
-api/node_modules/*
 frontend/node_modules/*
-api/db/*
-api/dist/*
-api/backup-manager.json
-api/.env
+functions/node_modules/*
+functions/dist/*
+functions/.env

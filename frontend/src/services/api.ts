@@ -1,7 +1,7 @@
 import type { Device, BackupEvent, StatusEntry, Task } from '../types'
 import { getToken, clearToken } from './auth'
 
-const BASE_URL = 'http://localhost:3001'
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const token = getToken()
