@@ -10,23 +10,44 @@ import eventsRouter from './routes/events.js'
 import statusRouter from './routes/status.js'
 import tasksRouter from './routes/tasks.js'
 
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+
+function corsMiddleware() {
+  return cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`))
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+}
+
 function makeApp(router: express.Router, { protected: isProtected } = { protected: false }) {
   const app = express()
-  app.use(cors())
+  app.use(corsMiddleware())
+  app.options('*', corsMiddleware())
   app.use(express.json())
   if (isProtected) app.use(requireAuth)
   app.use('/', router)
   return app
 }
 
-export const auth = onRequest(makeApp(authRouter))
+const opts = { invoker: 'public' as const }
 
-export const webhooks = onRequest(makeApp(webhooksRouter))
+export const auth = onRequest(opts, makeApp(authRouter))
 
-export const devices = onRequest(makeApp(devicesRouter, { protected: true }))
+export const webhooks = onRequest(opts, makeApp(webhooksRouter))
 
-export const events = onRequest(makeApp(eventsRouter, { protected: true }))
+export const devices = onRequest(opts, makeApp(devicesRouter, { protected: true }))
 
-export const tasks = onRequest(makeApp(tasksRouter, { protected: true }))
+export const events = onRequest(opts, makeApp(eventsRouter, { protected: true }))
 
-export const status = onRequest(makeApp(statusRouter, { protected: true }))
+export const tasks = onRequest(opts, makeApp(tasksRouter, { protected: true }))
+
+export const status = onRequest(opts, makeApp(statusRouter, { protected: true }))

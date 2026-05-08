@@ -8,3 +8,4 @@ functions/.env
 functions/*.log
 frontend/dist/*
 .firebase/*
+.VSCodeCounter/*

@@ -19,7 +19,7 @@ fi
 if $DEPLOY_API; then
   echo "==> Building & deploying API (Firebase Functions)..."
   cd functions
-  firebase deploy --only functions
+  npm run deploy
   cd ..
   echo "==> API deployed."
 fi
