@@ -51,7 +51,7 @@ export function calculateStatus(events: BackupEvent[], tasks: Task[]): StatusEnt
       }
     }
 
-    result.push({ device_id, task, last_event: lastEvent, status, task_config: taskConfig })
+    result.push({ device_id, task, last_event: lastEvent, status, event_count: groupEvents.length, task_config: taskConfig })
   }
 
   return result

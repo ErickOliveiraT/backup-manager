@@ -35,5 +35,6 @@ export interface StatusEntry {
   task: string
   last_event: BackupEvent
   status: 'healthy' | 'warning' | 'critical'
+  event_count: number
   task_config?: Task
 }

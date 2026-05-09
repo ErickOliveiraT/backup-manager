@@ -80,12 +80,6 @@ export function Dashboard() {
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   )[0]
 
-  const eventCountByTask = events.reduce<Record<string, number>>((acc, e) => {
-    const key = `${e.device_id}:${e.task}`
-    acc[key] = (acc[key] ?? 0) + 1
-    return acc
-  }, {})
-
   const deviceNameMap = Object.fromEntries(devices.map((d) => [d.id, d.name || d.id]))
 
   const perDeviceData = devices.map((d) => ({
@@ -225,7 +219,7 @@ export function Dashboard() {
             <StatusCard
               key={`${entry.device_id}:${entry.task}`}
               entry={entry}
-              eventCount={eventCountByTask[`${entry.device_id}:${entry.task}`] ?? 0}
+              eventCount={entry.event_count}
               deviceName={deviceNameMap[entry.device_id]}
             />
           ))}
@@ -246,7 +240,7 @@ export function Dashboard() {
             <StatusCard
               key={`${entry.device_id}:${entry.task}`}
               entry={entry}
-              eventCount={eventCountByTask[`${entry.device_id}:${entry.task}`] ?? 0}
+              eventCount={entry.event_count}
               compact
             />
           ))}
