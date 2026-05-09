@@ -1,11 +1,18 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
-import { getTasks, addTask, updateTask, deleteTask, taskExists } from '../services/taskService.js'
+import { getTasksPaginated, addTask, updateTask, deleteTask, taskExists } from '../services/taskService.js'
+import type { TaskFilters } from '../services/taskService.js'
 
 const router = Router()
 
-router.get('/', async (_req: Request, res: Response) => {
-  res.json(await getTasks())
+router.get('/', async (req: Request, res: Response) => {
+  const { device_id, page, limit } = req.query
+  const filters: TaskFilters = {
+    device_id: typeof device_id === 'string' && device_id ? device_id : undefined,
+  }
+  const pageNum = typeof page === 'string' ? Math.max(1, parseInt(page, 10) || 1) : 1
+  const limitNum = typeof limit === 'string' ? Math.min(100, Math.max(1, parseInt(limit, 10) || 10)) : 10
+  res.json(await getTasksPaginated(filters, pageNum, limitNum))
 })
 
 router.post('/', async (req: Request, res: Response) => {

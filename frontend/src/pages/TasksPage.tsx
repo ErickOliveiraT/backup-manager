@@ -3,7 +3,9 @@ import { fetchTasks, fetchDevices, createTask, updateTask, deleteTask } from '..
 import { useLastUpdated } from '../context/LastUpdatedContext'
 import { TableSkeleton } from '../components/Skeleton'
 import { WebhookModal } from '../components/WebhookModal'
-import type { Task, Device } from '../types'
+import type { Task, Device, PaginatedTasks } from '../types'
+
+const LIMIT = 10
 
 interface EditState {
   cron: string
@@ -15,9 +17,82 @@ function taskKey(t: Task) {
   return t.id
 }
 
+function Pagination({
+  page,
+  pages,
+  total,
+  onPage,
+}: {
+  page: number
+  pages: number
+  total: number
+  onPage: (p: number) => void
+}) {
+  const from = total === 0 ? 0 : (page - 1) * LIMIT + 1
+  const to = Math.min(page * LIMIT, total)
+
+  const nums: (number | '...')[] = []
+  if (pages <= 7) {
+    for (let i = 1; i <= pages; i++) nums.push(i)
+  } else {
+    nums.push(1)
+    if (page > 3) nums.push('...')
+    for (let i = Math.max(2, page - 1); i <= Math.min(pages - 1, page + 1); i++) nums.push(i)
+    if (page < pages - 2) nums.push('...')
+    nums.push(pages)
+  }
+
+  return (
+    <div className="flex items-center justify-between flex-wrap gap-3 px-1">
+      <span className="text-gray-500 text-xs">
+        {total === 0 ? '0 tasks' : `${from}–${to} of ${total} tasks`}
+      </span>
+      {pages > 1 && (
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => onPage(page - 1)}
+            disabled={page <= 1}
+            className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            ←
+          </button>
+          {nums.map((p, i) =>
+            p === '...' ? (
+              <span key={`e${i}`} className="px-1 text-gray-600 text-xs">
+                …
+              </span>
+            ) : (
+              <button
+                key={p}
+                onClick={() => onPage(p)}
+                className={`w-7 h-7 text-xs rounded transition-colors ${
+                  p === page
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                {p}
+              </button>
+            )
+          )}
+          <button
+            onClick={() => onPage(page + 1)}
+            disabled={page >= pages}
+            className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            →
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function TasksPage() {
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [paginated, setPaginated] = useState<PaginatedTasks>({ data: [], total: 0, page: 1, pages: 1 })
   const [devices, setDevices] = useState<Device[]>([])
+  const [page, setPage] = useState(1)
+  const [deviceFilter, setDeviceFilter] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [webhookTask, setWebhookTask] = useState<Task | null>(null)
   const [editForm, setEditForm] = useState<EditState>({ cron: '', warning_hours: '', critical_hours: '' })
@@ -26,18 +101,31 @@ export function TasksPage() {
   const [editError, setEditError] = useState('')
   const [addError, setAddError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [deviceFilter, setDeviceFilter] = useState('')
   const { setRefresh } = useLastUpdated()
 
-  const load = useCallback(async () => {
-    const [t, d] = await Promise.all([fetchTasks(), fetchDevices()])
-    setTasks(t)
+  const load = useCallback(async (df: string, p: number) => {
+    setLoading(true)
+    const [t, d] = await Promise.all([
+      fetchTasks({ device_id: df || undefined, page: p, limit: LIMIT }),
+      fetchDevices(),
+    ])
+    setPaginated(t)
     setDevices(d)
     setLoading(false)
   }, [])
 
-  useEffect(() => { load() }, [load])
-  useEffect(() => { setRefresh(load) }, [setRefresh, load])
+  useEffect(() => {
+    load(deviceFilter, page)
+  }, [load, deviceFilter, page])
+
+  useEffect(() => {
+    setRefresh(() => load(deviceFilter, page))
+  }, [setRefresh, load, deviceFilter, page])
+
+  const handleDeviceFilterChange = (value: string) => {
+    setPage(1)
+    setDeviceFilter(value)
+  }
 
   const startEdit = (task: Task) => {
     setEditingId(task.id)
@@ -64,7 +152,7 @@ export function TasksPage() {
     try {
       await updateTask(id, patch)
       setEditingId(null)
-      await load()
+      await load(deviceFilter, page)
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Failed to save')
     }
@@ -73,7 +161,7 @@ export function TasksPage() {
   const handleDeleteConfirm = async (id: string) => {
     await deleteTask(id)
     setConfirmingId(null)
-    await load()
+    await load(deviceFilter, page)
   }
 
   const handleAdd = async (e: React.FormEvent) => {
@@ -88,15 +176,14 @@ export function TasksPage() {
         ...(addForm.critical_hours !== '' && { critical_hours: Number(addForm.critical_hours) }),
       })
       setAddForm({ device_id: '', task: '', cron: '', warning_hours: '', critical_hours: '' })
-      await load()
+      await load(deviceFilter, page)
     } catch (err) {
       setAddError(err instanceof Error ? err.message : 'Failed to create task')
     }
   }
 
   const inputCls = 'bg-gray-900 border border-gray-600 text-gray-200 text-xs rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-600'
-
-  const filteredTasks = deviceFilter ? tasks.filter((t) => t.device_id === deviceFilter) : tasks
+  const tasks = paginated.data
 
   return (
     <>
@@ -107,7 +194,7 @@ export function TasksPage() {
           {!loading && devices.length > 0 && (
             <select
               value={deviceFilter}
-              onChange={(e) => setDeviceFilter(e.target.value)}
+              onChange={(e) => handleDeviceFilterChange(e.target.value)}
               className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">All devices</option>
@@ -120,10 +207,11 @@ export function TasksPage() {
 
         {loading ? (
           <TableSkeleton cols={6} />
-        ) : filteredTasks.length === 0 ? (
-          <p className="text-gray-500 text-sm">{tasks.length === 0 ? 'No tasks found. They are created automatically when a webhook arrives, or manually below.' : 'No tasks for this device.'}</p>
+        ) : tasks.length === 0 ? (
+          <p className="text-gray-500 text-sm">{paginated.total === 0 && !deviceFilter ? 'No tasks found. They are created automatically when a webhook arrives, or manually below.' : 'No tasks for this device.'}</p>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-gray-700">
+          <>
+          <div className="overflow-hidden rounded-xl border border-gray-700 mb-3">
             <table className="w-full text-sm text-left text-gray-300">
               <thead className="bg-gray-800 text-gray-400 text-xs uppercase">
                 <tr>
@@ -136,7 +224,7 @@ export function TasksPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredTasks.map((t, i) => (
+                {tasks.map((t, i) => (
                   confirmingId === t.id ? (
                     <tr key={taskKey(t)} className="bg-red-950/40">
                       <td colSpan={6} className="px-4 py-3">
@@ -221,6 +309,13 @@ export function TasksPage() {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={paginated.page}
+            pages={paginated.pages}
+            total={paginated.total}
+            onPage={setPage}
+          />
+          </>
         )}
       </section>
 

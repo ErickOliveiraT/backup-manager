@@ -1,4 +1,4 @@
-import type { Device, BackupEvent, StatusEntry, Task, PaginatedEvents } from '../types'
+import type { Device, BackupEvent, StatusEntry, Task, PaginatedEvents, PaginatedTasks } from '../types'
 import { getToken, clearToken } from './auth'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001'
@@ -76,7 +76,24 @@ export const updateDevice = (id: string, name: string) =>
     body: JSON.stringify({ name }),
   })
 
-export const fetchTasks = () => request<Task[]>('/tasks')
+export interface TaskFilters {
+  device_id?: string
+  page?: number
+  limit?: number
+}
+
+export const fetchTasks = async (filters: TaskFilters = {}): Promise<PaginatedTasks> => {
+  const params = new URLSearchParams()
+  Object.entries(filters).forEach(([k, v]) => {
+    if (v !== undefined && v !== '') params.set(k, String(v))
+  })
+  const qs = params.size ? `?${params}` : ''
+  const result = await request<PaginatedTasks | Task[]>(`/tasks${qs}`)
+  if (Array.isArray(result)) {
+    return { data: result, total: result.length, page: 1, pages: 1 }
+  }
+  return result
+}
 
 export const createTask = (data: {
   device_id: string

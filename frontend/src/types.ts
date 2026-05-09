@@ -30,6 +30,13 @@ export interface PaginatedEvents {
   pages: number
 }
 
+export interface PaginatedTasks {
+  data: Task[]
+  total: number
+  page: number
+  pages: number
+}
+
 export interface StatusEntry {
   device_id: string
   task: string

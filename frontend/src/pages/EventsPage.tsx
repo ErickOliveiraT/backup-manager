@@ -6,7 +6,7 @@ import { useLastUpdated } from '../context/LastUpdatedContext'
 import { TableSkeleton } from '../components/Skeleton'
 import type { BackupEvent, Device } from '../types'
 
-const LIMIT = 25
+const LIMIT = 12
 
 function formatTimestamp(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {

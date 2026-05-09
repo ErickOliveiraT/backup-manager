@@ -3,9 +3,39 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { tasksCol } from '../db/database.js'
 import type { Task } from '../types.js'
 
+export interface TaskFilters {
+  device_id?: string
+}
+
+export interface PaginatedTasks {
+  data: Task[]
+  total: number
+  page: number
+  pages: number
+}
+
 export async function getTasks(): Promise<Task[]> {
   const snap = await tasksCol.get()
   return snap.docs.map((d) => d.data() as Task)
+}
+
+export async function getTasksPaginated(
+  filters: TaskFilters = {},
+  page = 1,
+  limit = 25
+): Promise<PaginatedTasks> {
+  let tasks = await getTasks()
+
+  if (filters.device_id) tasks = tasks.filter((t) => t.device_id === filters.device_id)
+
+  tasks.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  const total = tasks.length
+  const pages = Math.max(1, Math.ceil(total / limit))
+  const safePage = Math.min(page, pages)
+  const start = (safePage - 1) * limit
+
+  return { data: tasks.slice(start, start + limit), total, page: safePage, pages }
 }
 
 export async function taskExists(deviceId: string, taskName: string): Promise<boolean> {

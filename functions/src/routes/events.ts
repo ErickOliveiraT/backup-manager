@@ -16,7 +16,7 @@ router.get('/', async (req: Request, res: Response) => {
     date_to: typeof date_to === 'string' && date_to ? date_to : undefined,
   }
   const pageNum = typeof page === 'string' ? Math.max(1, parseInt(page, 10) || 1) : 1
-  const limitNum = typeof limit === 'string' ? Math.min(100, Math.max(10, parseInt(limit, 10) || 25)) : 25
+  const limitNum = typeof limit === 'string' ? Math.min(100, Math.max(1, parseInt(limit, 10) || 12)) : 12
   res.json(await getEvents(filters, pageNum, limitNum))
 })
 
