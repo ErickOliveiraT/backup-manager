@@ -37,6 +37,13 @@ export interface PaginatedTasks {
   pages: number
 }
 
+export interface User {
+  id: string
+  name: string
+  username: string
+  api_key: string
+}
+
 export interface StatusEntry {
   device_id: string
   task: string

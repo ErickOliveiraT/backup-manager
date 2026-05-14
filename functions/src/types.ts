@@ -23,6 +23,15 @@ export interface Task {
   created_at: string
 }
 
+export interface User {
+  id: string
+  name: string
+  username: string
+  password_hash: string
+  api_key: string
+  created_at: string
+}
+
 export interface StatusEntry {
   device_id: string
   task: string

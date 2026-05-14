@@ -64,6 +64,9 @@ export function Navbar() {
             <NavLink to="/events" className={linkClass}>
               Events
             </NavLink>
+            <NavLink to="/settings" className={linkClass}>
+              Settings
+            </NavLink>
           </div>
         </div>
         <div className="flex items-center gap-3 text-gray-400 text-xs">

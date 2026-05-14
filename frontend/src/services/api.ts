@@ -1,4 +1,4 @@
-import type { Device, BackupEvent, StatusEntry, Task, PaginatedEvents, PaginatedTasks } from '../types'
+import type { Device, BackupEvent, StatusEntry, Task, PaginatedEvents, PaginatedTasks, User } from '../types'
 import { getToken, clearToken } from './auth'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001'
@@ -125,4 +125,16 @@ export const updateTask = (
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(patch),
+  })
+
+export const fetchMe = () => request<User>('/users/me')
+
+export const regenerateApiKey = () =>
+  request<{ api_key: string }>('/users/me/api-key', { method: 'POST' })
+
+export const changePassword = (current_password: string, new_password: string) =>
+  request<void>('/users/me/password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ current_password, new_password }),
   })

@@ -9,6 +9,7 @@ import devicesRouter from './routes/devices.js'
 import eventsRouter from './routes/events.js'
 import statusRouter from './routes/status.js'
 import tasksRouter from './routes/tasks.js'
+import usersRouter from './routes/users.js'
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? 'http://localhost:5173')
   .split(',')
@@ -51,3 +52,5 @@ export const events = onRequest(opts, makeApp(eventsRouter, { protected: true })
 export const tasks = onRequest(opts, makeApp(tasksRouter, { protected: true }))
 
 export const status = onRequest(opts, makeApp(statusRouter, { protected: true }))
+
+export const users = onRequest(opts, makeApp(usersRouter, { protected: true }))

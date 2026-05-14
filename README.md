@@ -27,20 +27,55 @@ cp functions/.env.example functions/.env
 ```
 
 ```
-WEBHOOK_API_KEY=your-secret-here
-LOGIN_USER=admin
-LOGIN_PASSWORD=your-password-here
 JWT_SECRET=your-jwt-secret-here
 ALLOWED_ORIGINS=https://backup-manager-2ae79.web.app,http://localhost:5173
+SERVICE_ACCOUNT_KEY=./serviceAccountKey.json
 ```
 
 `functions/.env` is loaded automatically by Firebase CLI in both the emulator and on deploy. It is gitignored.
+
+`SERVICE_ACCOUNT_KEY` is only required to run the `create-user` script locally. It is not used by the deployed functions.
 
 To update a variable, edit `functions/.env` and redeploy:
 
 ```bash
 npm run deploy
 ```
+
+### Creating users
+
+Users are managed via a CLI script. There is no signup flow in the application.
+
+**1. Download a service account key**
+
+Firebase Console → Project Settings → Service Accounts → **Generate new private key** → save as `functions/serviceAccountKey.json` (gitignored).
+
+**2. Set the key path in `.env`**
+
+```
+SERVICE_ACCOUNT_KEY=./serviceAccountKey.json
+```
+
+**3. Run the script**
+
+```bash
+cd functions
+npm run create-user -- --name "Erick" --username erick --password yourpassword
+```
+
+Output:
+
+```json
+{
+  "id": "...",
+  "name": "Erick",
+  "username": "erick",
+  "api_key": "...",
+  "created_at": "..."
+}
+```
+
+The printed `api_key` is what the user sends in webhook requests. It can also be viewed and regenerated from the **Settings** page in the dashboard.
 
 ### Functions — running locally
 
@@ -101,10 +136,11 @@ npm run frontend:build # build frontend for production
 |---|---|---|
 | `auth` | `POST /auth/login` | public |
 | `webhooks` | `POST /webhooks/sync` | api_key in body |
-| `devices` | `GET/POST /devices`, `PATCH /devices/:id` | JWT |
-| `events` | `GET /events`, `DELETE /events/:id` | JWT | supports pagination and filters |
+| `devices` | `GET/POST /devices`, `PATCH/DELETE /devices/:id` | JWT |
+| `events` | `GET /events`, `DELETE /events/:id` | JWT |
 | `tasks` | `GET/POST/PATCH/DELETE /tasks` | JWT |
 | `status` | `GET /status` | JWT |
+| `users` | `GET /users/me`, `POST /users/me/api-key` | JWT |
 
 ---
 
@@ -117,22 +153,35 @@ npm run frontend:build # build frontend for production
 ```bash
 curl -X POST $BASE_URL/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"username": "admin", "password": "your-password-here"}'
+  -d '{"username": "erick", "password": "yourpassword"}'
 # Returns {"token": "..."}
 ```
 
 Use the returned token in the `Authorization: Bearer <token>` header for all protected endpoints.
 
+### User — current user info
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" $BASE_URL/users/me
+```
+
+### User — regenerate API key
+
+```bash
+curl -X POST -H "Authorization: Bearer $TOKEN" $BASE_URL/users/me/api-key
+# Returns {"api_key": "..."}
+```
+
 ### Webhook — send a backup event
 
-The `api_key` field is required. The timestamp is generated server-side (São Paulo timezone). Devices and tasks are created automatically if they don't exist yet.
+The `api_key` field must match the key of an existing user. The timestamp is generated server-side (São Paulo timezone). Devices and tasks are created automatically if they don't exist yet.
 
 ```bash
 # Successful backup
 curl -X POST $BASE_URL/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
-    "api_key": "your-secret-here",
+    "api_key": "your-api-key-here",
     "device_id": "notebook-linux",
     "source": "opensync",
     "task": "documents-backup",
@@ -143,7 +192,7 @@ curl -X POST $BASE_URL/webhooks/sync \
 curl -X POST $BASE_URL/webhooks/sync \
   -H "Content-Type: application/json" \
   -d '{
-    "api_key": "your-secret-here",
+    "api_key": "your-api-key-here",
     "device_id": "notebook-linux",
     "source": "rsync",
     "task": "system-backup",
@@ -268,11 +317,12 @@ backup-manager/
 ├── .firebaserc
 ├── functions/
 │   ├── src/
-│   │   ├── index.ts       # 6 function exports
+│   │   ├── index.ts       # 7 function exports
 │   │   ├── types.ts
 │   │   ├── db/database.ts
 │   │   ├── middleware/
 │   │   ├── routes/
+│   │   ├── scripts/       # create-user CLI
 │   │   └── services/
 │   ├── .env               # environment variables (gitignored)
 │   ├── .env.example       # variable template

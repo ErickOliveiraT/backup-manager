@@ -3,6 +3,7 @@ import type { Request, Response } from 'express'
 import { addEvent } from '../services/eventService.js'
 import { deviceExists, addDevice } from '../services/deviceService.js'
 import { taskExists, addTask } from '../services/taskService.js'
+import { requireApiKey } from '../middleware/auth.js'
 import type { BackupEvent } from '../types.js'
 
 const router = Router()
@@ -13,19 +14,8 @@ function nowInSaoPaulo(): string {
   return new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T') + '-03:00'
 }
 
-router.post('/sync', async (req: Request, res: Response) => {
-  const WEBHOOK_API_KEY = process.env.WEBHOOK_API_KEY
-  if (!WEBHOOK_API_KEY) {
-    res.status(500).json({ error: 'Server misconfiguration' })
-    return
-  }
-
+router.post('/sync', requireApiKey, async (req: Request, res: Response) => {
   const body = req.body as Record<string, unknown>
-
-  if (body.api_key !== WEBHOOK_API_KEY) {
-    res.status(401).json({ error: 'Invalid or missing api_key' })
-    return
-  }
 
   const missing = REQUIRED.filter((field) => !body[field])
   if (missing.length > 0) {

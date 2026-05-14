@@ -6,6 +6,7 @@ import { DevicesPage } from './pages/DevicesPage'
 import { TasksPage } from './pages/TasksPage'
 import { EventsPage } from './pages/EventsPage'
 import { LoginPage } from './pages/LoginPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { LastUpdatedProvider } from './context/LastUpdatedContext'
 import { isAuthenticated } from './services/auth'
 
@@ -77,6 +78,16 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <Layout>
           <EventsPage />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/settings',
+    element: (
+      <ProtectedRoute>
+        <Layout>
+          <SettingsPage />
         </Layout>
       </ProtectedRoute>
     ),
