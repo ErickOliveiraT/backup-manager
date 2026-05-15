@@ -16,7 +16,7 @@ function AppFooter() {
       <span>Status is calculated based on the last event received for each task.</span>
       <div className="flex items-center gap-2">
         <Shield size={14} className="text-blue-400" />
-        <span>Backup Manager v0.1.0</span>
+        <span>Backup Manager v1.1.0</span>
       </div>
     </footer>
   )
