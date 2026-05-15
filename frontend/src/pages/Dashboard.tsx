@@ -16,6 +16,46 @@ import type { StatusEntry, Device, BackupEvent } from '../types'
 
 type ViewMode = 'grid' | 'list'
 
+const PAGE_SIZE = 12
+
+function CardsPagination({ page, pages, total, onPage }: { page: number; pages: number; total: number; onPage: (p: number) => void }) {
+  if (pages <= 1) return null
+  const from = (page - 1) * PAGE_SIZE + 1
+  const to = Math.min(page * PAGE_SIZE, total)
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-500 text-xs">{from}–{to} of {total} tasks</span>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onPage(page - 1)}
+          disabled={page <= 1}
+          className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white hover:bg-[#2a3040] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          ←
+        </button>
+        {Array.from({ length: pages }, (_, i) => i + 1).map((p) => (
+          <button
+            key={p}
+            onClick={() => onPage(p)}
+            className={`w-7 h-7 text-xs rounded transition-colors ${
+              p === page ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white hover:bg-[#2a3040]'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+        <button
+          onClick={() => onPage(page + 1)}
+          disabled={page >= pages}
+          className="px-2 py-1 text-xs rounded text-gray-400 hover:text-white hover:bg-[#2a3040] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        >
+          →
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function timeAgoShort(timestamp: string): string {
   const diff = Date.now() - new Date(timestamp).getTime()
   const minutes = Math.floor(diff / 60000)
@@ -33,6 +73,7 @@ export function Dashboard() {
   const [filterDevice, setFilterDevice] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [cardsPage, setCardsPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const { setLastUpdated, setRefresh } = useLastUpdated()
 
@@ -95,6 +136,16 @@ export function Dashboard() {
     return true
   })
 
+  const cardPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(cardsPage, cardPages)
+  const pageSlice = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+  const isLastPage = safePage === cardPages
+
+  const handleFilterChange = (setter: (v: string) => void) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setter(e.target.value)
+    setCardsPage(1)
+  }
+
   const selectCls =
     'bg-[#1a1f2e] border border-[#2a3040] text-gray-200 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500'
 
@@ -112,7 +163,7 @@ export function Dashboard() {
       <div className="flex items-center gap-3 flex-wrap">
         <select
           value={filterDevice}
-          onChange={(e) => setFilterDevice(e.target.value)}
+          onChange={handleFilterChange(setFilterDevice)}
           className={selectCls}
         >
           <option value="">All devices</option>
@@ -124,7 +175,7 @@ export function Dashboard() {
         </select>
         <select
           value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
+          onChange={handleFilterChange(setFilterStatus)}
           className={selectCls}
         >
           <option value="">All statuses</option>
@@ -211,32 +262,37 @@ export function Dashboard() {
       {/* Cards grid / list */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => <StatusCardSkeleton key={i} />)}
+          {Array.from({ length: PAGE_SIZE }).map((_, i) => <StatusCardSkeleton key={i} />)}
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map((entry) => (
-            <StatusCard
-              key={`${entry.device_id}:${entry.task}`}
-              entry={entry}
-              eventCount={entry.event_count}
-              deviceName={deviceNameMap[entry.device_id]}
-            />
-          ))}
-          <Link
-            to="/tasks"
-            className="bg-[#1a1f2e] border-2 border-dashed border-[#2a3040] rounded-xl p-5
-              flex flex-col items-center justify-center gap-2 text-gray-500
-              hover:border-blue-600 hover:text-blue-400 transition-colors min-h-[160px]"
-          >
-            <Plus size={24} />
-            <span className="text-sm font-medium">Add task</span>
-            <span className="text-xs text-center">Monitor a new backup task</span>
-          </Link>
+        <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {pageSlice.map((entry) => (
+              <StatusCard
+                key={`${entry.device_id}:${entry.task}`}
+                entry={entry}
+                eventCount={entry.event_count}
+                deviceName={deviceNameMap[entry.device_id]}
+              />
+            ))}
+            {isLastPage && (
+              <Link
+                to="/tasks"
+                className="bg-[#1a1f2e] border-2 border-dashed border-[#2a3040] rounded-xl p-5
+                  flex flex-col items-center justify-center gap-2 text-gray-500
+                  hover:border-blue-600 hover:text-blue-400 transition-colors min-h-[160px]"
+              >
+                <Plus size={24} />
+                <span className="text-sm font-medium">Add task</span>
+                <span className="text-xs text-center">Monitor a new backup task</span>
+              </Link>
+            )}
+          </div>
+          <CardsPagination page={safePage} pages={cardPages} total={filtered.length} onPage={setCardsPage} />
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {filtered.map((entry) => (
+          {pageSlice.map((entry) => (
             <StatusCard
               key={`${entry.device_id}:${entry.task}`}
               entry={entry}
@@ -247,6 +303,7 @@ export function Dashboard() {
           {filtered.length === 0 && (
             <p className="text-gray-500 text-sm">No tasks found.</p>
           )}
+          <CardsPagination page={safePage} pages={cardPages} total={filtered.length} onPage={setCardsPage} />
         </div>
       )}
 
