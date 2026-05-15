@@ -1,4 +1,4 @@
-import type { Device, BackupEvent, StatusEntry, Task, PaginatedEvents, PaginatedTasks, User } from '../types'
+import type { Device, BackupEvent, StatusEntry, Task, PaginatedDevices, PaginatedEvents, PaginatedTasks, User } from '../types'
 import { getToken, clearToken } from './auth'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001'
@@ -37,6 +37,9 @@ export const login = (username: string, password: string) =>
 export const fetchStatus = () => request<StatusEntry[]>('/status')
 
 export const fetchDevices = () => request<Device[]>('/devices')
+
+export const fetchDevicesPaginated = (page: number, limit = 10) =>
+  request<PaginatedDevices>(`/devices?page=${page}&limit=${limit}`)
 
 export interface EventFilters {
   device_id?: string

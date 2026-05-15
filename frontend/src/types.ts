@@ -23,6 +23,13 @@ export interface Task {
   created_at: string
 }
 
+export interface PaginatedDevices {
+  data: Device[]
+  total: number
+  page: number
+  pages: number
+}
+
 export interface PaginatedEvents {
   data: BackupEvent[]
   total: number

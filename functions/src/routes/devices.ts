@@ -1,11 +1,16 @@
 import { Router } from 'express'
 import type { Request, Response } from 'express'
-import { getDevices, addDevice, deviceExists, updateDevice, deleteDevice } from '../services/deviceService.js'
+import { getDevices, getDevicesPaginated, addDevice, deviceExists, updateDevice, deleteDevice } from '../services/deviceService.js'
 
 const router = Router()
 
-router.get('/', async (_req: Request, res: Response) => {
-  res.json(await getDevices())
+router.get('/', async (req: Request, res: Response) => {
+  const { page, limit } = req.query as Record<string, string>
+  if (page !== undefined) {
+    res.json(await getDevicesPaginated(Number(page) || 1, Number(limit) || 10))
+  } else {
+    res.json(await getDevices())
+  }
 })
 
 router.post('/', async (req: Request, res: Response) => {
