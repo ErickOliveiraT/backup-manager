@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchTasks, fetchDevices, createTask, updateTask, deleteTask } from '../services/api'
+import { Plus } from 'lucide-react'
+import { fetchTasks, fetchDevices, updateTask, deleteTask } from '../services/api'
 import { useLastUpdated } from '../context/LastUpdatedContext'
 import { TableSkeleton } from '../components/Skeleton'
 import { WebhookModal } from '../components/WebhookModal'
+import { AddTaskModal } from '../components/AddTaskModal'
 import type { Task, Device, PaginatedTasks } from '../types'
 
 const LIMIT = 10
@@ -95,11 +97,10 @@ export function TasksPage() {
   const [deviceFilter, setDeviceFilter] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [webhookTask, setWebhookTask] = useState<Task | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
   const [editForm, setEditForm] = useState<EditState>({ cron: '', warning_hours: '', critical_hours: '' })
-  const [addForm, setAddForm] = useState({ device_id: '', task: '', cron: '', warning_hours: '', critical_hours: '' })
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [editError, setEditError] = useState('')
-  const [addError, setAddError] = useState('')
   const [loading, setLoading] = useState(true)
   const { setRefresh } = useLastUpdated()
 
@@ -164,24 +165,6 @@ export function TasksPage() {
     await load(deviceFilter, page)
   }
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setAddError('')
-    try {
-      await createTask({
-        device_id: addForm.device_id,
-        task: addForm.task.trim(),
-        ...(addForm.cron.trim() && { cron: addForm.cron.trim() }),
-        ...(addForm.warning_hours !== '' && { warning_hours: Number(addForm.warning_hours) }),
-        ...(addForm.critical_hours !== '' && { critical_hours: Number(addForm.critical_hours) }),
-      })
-      setAddForm({ device_id: '', task: '', cron: '', warning_hours: '', critical_hours: '' })
-      await load(deviceFilter, page)
-    } catch (err) {
-      setAddError(err instanceof Error ? err.message : 'Failed to create task')
-    }
-  }
-
   const inputCls = 'bg-gray-900 border border-gray-600 text-gray-200 text-xs rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-600'
   const tasks = paginated.data
 
@@ -190,19 +173,28 @@ export function TasksPage() {
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
       <section>
         <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
-          <h1 className="text-white text-2xl font-bold">Tasks</h1>
-          {!loading && devices.length > 0 && (
-            <select
-              value={deviceFilter}
-              onChange={(e) => handleDeviceFilterChange(e.target.value)}
-              className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">All devices</option>
-              {devices.map((d) => (
-                <option key={d.id} value={d.id}>{d.name || d.id}</option>
-              ))}
-            </select>
-          )}
+          <div className="flex items-center gap-3">
+            <h1 className="text-white text-2xl font-bold">Tasks</h1>
+            {!loading && devices.length > 0 && (
+              <select
+                value={deviceFilter}
+                onChange={(e) => handleDeviceFilterChange(e.target.value)}
+                className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="">All devices</option>
+                {devices.map((d) => (
+                  <option key={d.id} value={d.id}>{d.name || d.id}</option>
+                ))}
+              </select>
+            )}
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md px-3 py-2 transition-colors"
+          >
+            <Plus size={15} />
+            Add Task
+          </button>
         </div>
 
         {loading ? (
@@ -318,79 +310,17 @@ export function TasksPage() {
           </>
         )}
       </section>
-
-      <section>
-        <h2 className="text-white text-lg font-semibold mb-3">Add Task</h2>
-        <form onSubmit={handleAdd} className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg">
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">Device *</label>
-            <select
-              value={addForm.device_id}
-              onChange={(e) => setAddForm((f) => ({ ...f, device_id: e.target.value }))}
-              required
-              className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="">Select device...</option>
-              {devices.map((d) => (
-                <option key={d.id} value={d.id}>{d.name || d.id}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">Task name *</label>
-            <input
-              type="text"
-              placeholder="e.g. documents-backup"
-              value={addForm.task}
-              onChange={(e) => setAddForm((f) => ({ ...f, task: e.target.value }))}
-              required
-              className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-2 w-full placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="text-gray-400 text-xs mb-1 block">Cron <span className="text-gray-600">(optional)</span></label>
-            <input
-              type="text"
-              placeholder="0 2 * * *"
-              value={addForm.cron}
-              onChange={(e) => setAddForm((f) => ({ ...f, cron: e.target.value }))}
-              className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-2 w-full placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <label className="text-gray-400 text-xs mb-1 block">Warn (h) <span className="text-gray-600">(optional)</span></label>
-              <input
-                type="number"
-                placeholder="24"
-                value={addForm.warning_hours}
-                onChange={(e) => setAddForm((f) => ({ ...f, warning_hours: e.target.value }))}
-                className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-2 w-full placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-            <div className="flex-1">
-              <label className="text-gray-400 text-xs mb-1 block">Crit (h) <span className="text-gray-600">(optional)</span></label>
-              <input
-                type="number"
-                placeholder="72"
-                value={addForm.critical_hours}
-                onChange={(e) => setAddForm((f) => ({ ...f, critical_hours: e.target.value }))}
-                className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-2 w-full placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-            </div>
-          </div>
-          {addError && <p className="text-red-400 text-xs sm:col-span-2">{addError}</p>}
-          <div className="sm:col-span-2">
-            <button type="submit" className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md px-4 py-2 transition-colors">
-              Add Task
-            </button>
-          </div>
-        </form>
-      </section>
     </div>
 
     {webhookTask && (
       <WebhookModal task={webhookTask} onClose={() => setWebhookTask(null)} />
+    )}
+    {showAddModal && (
+      <AddTaskModal
+        devices={devices}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => load(deviceFilter, page)}
+      />
     )}
     </>
   )

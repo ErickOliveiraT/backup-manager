@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
-import { fetchDevicesPaginated, createDevice, updateDevice, deleteDevice } from '../services/api'
+import { Plus } from 'lucide-react'
+import { fetchDevicesPaginated, updateDevice, deleteDevice } from '../services/api'
 import { useLastUpdated } from '../context/LastUpdatedContext'
 import { TableSkeleton } from '../components/Skeleton'
+import { AddDeviceModal } from '../components/AddDeviceModal'
 import type { Device, PaginatedDevices } from '../types'
 
 const LIMIT = 10
@@ -78,12 +80,11 @@ function Pagination({
 export function DevicesPage() {
   const [paginated, setPaginated] = useState<PaginatedDevices>({ data: [], total: 0, page: 1, pages: 1 })
   const [page, setPage] = useState(1)
-  const [form, setForm] = useState({ id: '', name: '' })
+  const [showAddModal, setShowAddModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editError, setEditError] = useState('')
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
-  const [addError, setAddError] = useState('')
   const [loading, setLoading] = useState(true)
   const { setRefresh } = useLastUpdated()
 
@@ -126,25 +127,23 @@ export function DevicesPage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setAddError('')
-    try {
-      await createDevice(form)
-      setForm({ id: '', name: '' })
-      await load(page)
-    } catch (err) {
-      setAddError(err instanceof Error ? err.message : 'Failed to create device')
-    }
-  }
-
   const inputCls = 'bg-gray-900 border border-gray-600 text-gray-200 text-xs rounded px-2 py-1 w-full focus:outline-none focus:ring-1 focus:ring-indigo-500 placeholder-gray-600'
   const devices = paginated.data
 
   return (
+    <>
     <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col gap-8">
       <section>
-        <h1 className="text-white text-2xl font-bold mb-4">Devices</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-white text-2xl font-bold">Devices</h1>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md px-3 py-2 transition-colors"
+          >
+            <Plus size={15} />
+            Add Device
+          </button>
+        </div>
         {loading ? (
           <TableSkeleton cols={4} />
         ) : devices.length === 0 && paginated.total === 0 ? (
@@ -263,35 +262,14 @@ export function DevicesPage() {
           </>
         )}
       </section>
-
-      <section>
-        <h2 className="text-white text-lg font-semibold mb-3">Add Device</h2>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-sm">
-          <input
-            type="text"
-            placeholder="Device ID (e.g. notebook-linux-1)"
-            value={form.id}
-            onChange={(e) => setForm((f) => ({ ...f, id: e.target.value }))}
-            required
-            className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          <input
-            type="text"
-            placeholder="Display name (e.g. Notebook Linux)"
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            required
-            className="bg-gray-800 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-2 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-          {addError && <p className="text-red-400 text-xs">{addError}</p>}
-          <button
-            type="submit"
-            className="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md px-4 py-2 transition-colors"
-          >
-            Add Device
-          </button>
-        </form>
-      </section>
     </div>
+
+    {showAddModal && (
+      <AddDeviceModal
+        onClose={() => setShowAddModal(false)}
+        onSuccess={() => load(page)}
+      />
+    )}
+    </>
   )
 }
