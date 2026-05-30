@@ -11,3 +11,4 @@ functions/backup-manager-key.json
 frontend/dist/*
 .firebase/*
 .VSCodeCounter/*
+app/.env
