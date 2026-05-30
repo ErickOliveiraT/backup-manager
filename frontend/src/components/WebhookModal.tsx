@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { X, Copy, Check } from 'lucide-react'
 import type { Task } from '../types'
+import { fetchMe } from '../services/api'
 
 const ENDPOINT = `${import.meta.env.VITE_API_BASE_URL ?? ''}/webhooks/sync`
 
-function buildPayload(task: Task) {
+function buildPayload(task: Task, apiKey: string) {
   return {
-    api_key: 'YOUR_API_KEY',
+    api_key: apiKey,
     device_id: task.device_id,
     source: 'your-source',
     task: task.task,
@@ -34,8 +35,13 @@ interface Props {
 
 export function WebhookModal({ task, onClose }: Props) {
   const [copied, setCopied] = useState<'endpoint' | 'payload' | null>(null)
+  const [apiKey, setApiKey] = useState('YOUR_API_KEY')
 
-  const payload = buildPayload(task)
+  useEffect(() => {
+    fetchMe().then((u) => setApiKey(u.api_key)).catch(() => {})
+  }, [])
+
+  const payload = buildPayload(task, apiKey)
   const payloadStr = JSON.stringify(payload, null, 2)
 
   const copy = (text: string, key: 'endpoint' | 'payload') => {
@@ -105,7 +111,11 @@ export function WebhookModal({ task, onClose }: Props) {
         </div>
 
         <p className="text-gray-600 text-xs">
-          Replace <span className="text-gray-400 font-mono">YOUR_API_KEY</span> with the key configured on the server and <span className="text-gray-400 font-mono">your-source</span> with your sync app identifier.
+          {apiKey === 'YOUR_API_KEY'
+            ? <>Replace <span className="text-gray-400 font-mono">YOUR_API_KEY</span> with your API key and </>
+            : <>Replace </>
+          }
+          <span className="text-gray-400 font-mono">your-source</span> with your sync app identifier.
         </p>
       </div>
     </div>
