@@ -11,6 +11,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.bargrall.backupmanager",
       "adaptiveIcon": {
         "backgroundColor": "#0f1117",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -30,6 +31,13 @@
       "expo-font",
       "expo-asset",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "370c9d24-e607-484b-8513-1996ee2eff03"
+      }
+    },
+    "owner": "bargrall"
   }
 }
