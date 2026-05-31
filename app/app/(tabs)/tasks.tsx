@@ -13,7 +13,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Check, Pencil, Plus, Trash2, X, Webhook } from 'lucide-react-native';
+import { Check, Copy, Pencil, Plus, Trash2, X, Webhook } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
 import {
   createTask,
   deleteTask,
@@ -53,6 +54,7 @@ export default function TasksScreen() {
 
   const [payloadTask, setPayloadTask] = useState<Task | null>(null);
   const [apiKey, setApiKey] = useState('');
+  const [payloadCopied, setPayloadCopied] = useState(false);
 
   const load = useCallback(async (p = page) => {
     try {
@@ -64,7 +66,7 @@ export default function TasksScreen() {
       setTotal(res.total);
       setPages(res.pages);
       setDevices(devs.data);
-    } catch {}
+    } catch { }
   }, [page, deviceFilter]);
 
   useEffect(() => {
@@ -142,13 +144,13 @@ export default function TasksScreen() {
         setApiKey(me.api_key);
       }
       setPayloadTask(t);
-    } catch {}
+    } catch { }
   }
 
   const payload = payloadTask ? JSON.stringify({
     api_key: apiKey || '<your-api-key>',
     device_id: payloadTask.device_id,
-    source: 'my-script',
+    source: 'my-source',
     task: payloadTask.task,
     status: 'success',
   }, null, 2) : '';
@@ -298,9 +300,20 @@ export default function TasksScreen() {
               <Pressable onPress={() => setPayloadTask(null)}><X size={20} color={colors.textSecondary} /></Pressable>
             </View>
             <Text style={styles.payloadHint}>POST to: /webhooks/sync</Text>
-            <ScrollView horizontal>
-              <Text style={styles.payloadCode}>{payload}</Text>
-            </ScrollView>
+            <Text style={styles.payloadCode}>{payload}</Text>
+            <Pressable
+              style={styles.copyBtn}
+              onPress={async () => {
+                await Clipboard.setStringAsync(payload);
+                setPayloadCopied(true);
+                setTimeout(() => setPayloadCopied(false), 2000);
+              }}
+            >
+              <Copy size={15} color={payloadCopied ? colors.greenLight : colors.textSecondary} />
+              <Text style={[styles.copyBtnText, payloadCopied && { color: colors.greenLight }]}>
+                {payloadCopied ? 'Copiado!' : 'Copiar'}
+              </Text>
+            </Pressable>
           </View>
         </Pressable>
       </Modal>
@@ -351,7 +364,7 @@ const styles = StyleSheet.create({
   rowDevice: { color: colors.blueLight, fontSize: 11, fontFamily: 'monospace' },
   rowTask: { color: colors.textPrimary, fontSize: 13, fontFamily: 'monospace', marginTop: 2 },
   rowMeta: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
-  iconBtn: { padding: 6, marginTop: 2 },
+  iconBtn: { padding: 12 },
   editCard: {
     backgroundColor: colors.bgSecondary,
     borderWidth: 1,
@@ -404,5 +417,7 @@ const styles = StyleSheet.create({
   submitBtnText: { color: '#fff', fontWeight: '600' },
   btnDisabled: { opacity: 0.5 },
   payloadHint: { color: colors.textMuted, fontSize: 11, marginBottom: 8 },
-  payloadCode: { color: colors.greenLight, fontSize: 12, fontFamily: 'monospace', lineHeight: 20, padding: 12, backgroundColor: '#0a0f1a', borderRadius: 8 },
+  payloadCode: { color: colors.greenLight, fontSize: 12, fontFamily: 'monospace', lineHeight: 20, padding: 12, backgroundColor: '#0a0f1a', borderRadius: 8, width: '100%' },
+  copyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, backgroundColor: colors.bgTertiary, borderRadius: 8, paddingVertical: 9 },
+  copyBtnText: { color: colors.textSecondary, fontSize: 13, fontWeight: '500' },
 });

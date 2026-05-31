@@ -106,7 +106,7 @@ export default function EventsScreen() {
       {/* Filters */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
         <Pressable style={styles.filterBtn} onPress={() => setStatusPickerOpen(true)}>
-          <Text style={styles.filterText}>{statusFilter || 'All statuses'}</Text>
+          <Text style={styles.filterText} numberOfLines={1}>{statusFilter || 'All statuses'}</Text>
         </Pressable>
         <Pressable style={styles.filterBtn} onPress={() => setDevicePickerOpen(true)}>
           <Text style={styles.filterText} numberOfLines={1}>{deviceFilter || 'All devices'}</Text>
@@ -223,17 +223,18 @@ export default function EventsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bgPrimary },
-  filterScroll: { borderBottomWidth: 1, borderBottomColor: colors.border },
-  filterRow: { padding: 12, gap: 8, flexDirection: 'row', alignItems: 'center' },
+  filterScroll: { borderBottomWidth: 1, borderBottomColor: colors.border, flexGrow: 0 },
+  filterRow: { paddingHorizontal: 12, paddingVertical: 14, gap: 8, flexDirection: 'row', alignItems: 'center' },
   filterBtn: {
     backgroundColor: colors.bgSecondary,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    flexShrink: 0,
   },
-  filterText: { color: colors.textSecondary, fontSize: 12 },
+  filterText: { color: colors.textSecondary, fontSize: 12, lineHeight: 16, includeFontPadding: false },
   dateInput: {
     backgroundColor: colors.bgSecondary,
     borderWidth: 1,
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
   rowDevice: { color: colors.blueLight, fontSize: 12, fontFamily: 'monospace' },
   rowTask: { color: colors.textPrimary, fontSize: 12, fontFamily: 'monospace', marginTop: 1 },
   rowMeta: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
-  iconBtn: { padding: 4, marginTop: 2 },
+  iconBtn: { padding: 12, alignSelf: 'center' },
   pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 16 },
   pageBtn: { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.border, borderRadius: 6, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   pageBtnDisabled: { opacity: 0.4 },

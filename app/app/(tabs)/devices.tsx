@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     fontSize: 13,
   },
-  iconBtn: { padding: 6 },
+  iconBtn: { padding: 12 },
   pagination: {
     flexDirection: 'row',
     alignItems: 'center',
