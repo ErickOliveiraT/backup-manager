@@ -3,16 +3,17 @@ import {
   Alert,
   FlatList,
   Modal,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { CheckCircle, XCircle, Trash2, X } from 'lucide-react-native';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import { CheckCircle, XCircle, Trash2, X, Calendar } from 'lucide-react-native';
 import { deleteEvent, getDevices, getEvents } from '../../src/services/api';
 import { RowSkeleton } from '../../src/components/Skeleton';
 import { colors } from '../../src/theme';
@@ -36,6 +37,8 @@ export default function EventsScreen() {
 
   const [statusPickerOpen, setStatusPickerOpen] = useState(false);
   const [devicePickerOpen, setDevicePickerOpen] = useState(false);
+  const [datePickerTarget, setDatePickerTarget] = useState<'from' | 'to' | null>(null);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
 
   const load = useCallback(async (p = 1) => {
     try {
@@ -93,6 +96,36 @@ export default function EventsScreen() {
 
   const hasFilters = statusFilter || deviceFilter || dateFrom || dateTo;
 
+  function openDatePicker(target: 'from' | 'to') {
+    const existing = target === 'from' ? dateFrom : dateTo;
+    setTempDate(existing ? new Date(existing) : new Date());
+    setDatePickerTarget(target);
+  }
+
+  function onDateChange(event: DateTimePickerEvent, selected?: Date) {
+    if (Platform.OS === 'android') {
+      setDatePickerTarget(null);
+      if (event.type === 'set' && selected) {
+        const iso = selected.toISOString().slice(0, 10);
+        datePickerTarget === 'from' ? setDateFrom(iso) : setDateTo(iso);
+      }
+    } else {
+      if (selected) setTempDate(selected);
+    }
+  }
+
+  function confirmIOSDate() {
+    const iso = tempDate.toISOString().slice(0, 10);
+    datePickerTarget === 'from' ? setDateFrom(iso) : setDateTo(iso);
+    setDatePickerTarget(null);
+  }
+
+  function formatDateLabel(iso: string) {
+    if (!iso) return null;
+    const [y, m, d] = iso.split('-');
+    return `${d}/${m}/${y}`;
+  }
+
   function formatTs(ts: string) {
     try {
       return new Date(ts).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
@@ -111,20 +144,18 @@ export default function EventsScreen() {
         <Pressable style={styles.filterBtn} onPress={() => setDevicePickerOpen(true)}>
           <Text style={styles.filterText} numberOfLines={1}>{deviceFilter || 'All devices'}</Text>
         </Pressable>
-        <TextInput
-          style={styles.dateInput}
-          value={dateFrom}
-          onChangeText={setDateFrom}
-          placeholder="From (YYYY-MM-DD)"
-          placeholderTextColor={colors.textMuted}
-        />
-        <TextInput
-          style={styles.dateInput}
-          value={dateTo}
-          onChangeText={setDateTo}
-          placeholder="To (YYYY-MM-DD)"
-          placeholderTextColor={colors.textMuted}
-        />
+        <Pressable style={[styles.filterBtn, styles.dateBtn]} onPress={() => openDatePicker('from')}>
+          <Calendar size={12} color={dateFrom ? colors.blueLight : colors.textMuted} />
+          <Text style={[styles.filterText, dateFrom && styles.dateActive]} numberOfLines={1}>
+            {dateFrom ? formatDateLabel(dateFrom) : 'From'}
+          </Text>
+        </Pressable>
+        <Pressable style={[styles.filterBtn, styles.dateBtn]} onPress={() => openDatePicker('to')}>
+          <Calendar size={12} color={dateTo ? colors.blueLight : colors.textMuted} />
+          <Text style={[styles.filterText, dateTo && styles.dateActive]} numberOfLines={1}>
+            {dateTo ? formatDateLabel(dateTo) : 'To'}
+          </Text>
+        </Pressable>
         {hasFilters ? (
           <Pressable style={styles.clearBtn} onPress={() => { setStatusFilter(''); setDeviceFilter(''); setDateFrom(''); setDateTo(''); }}>
             <X size={12} color={colors.blueLight} />
@@ -198,6 +229,44 @@ export default function EventsScreen() {
         </Pressable>
       </Modal>
 
+      {/* Date picker — Android renders natively as dialog, iOS uses modal */}
+      {datePickerTarget !== null && Platform.OS === 'android' && (
+        <DateTimePicker
+          mode="date"
+          value={tempDate}
+          onChange={onDateChange}
+          maximumDate={new Date()}
+        />
+      )}
+      {datePickerTarget !== null && Platform.OS === 'ios' && (
+        <Modal transparent animationType="slide" onRequestClose={() => setDatePickerTarget(null)}>
+          <Pressable style={styles.backdrop} onPress={() => setDatePickerTarget(null)}>
+            <Pressable style={styles.iosPickerCard} onPress={(e) => e.stopPropagation()}>
+              <Text style={styles.pickerTitle}>
+                {datePickerTarget === 'from' ? 'From date' : 'To date'}
+              </Text>
+              <DateTimePicker
+                mode="date"
+                display="spinner"
+                value={tempDate}
+                onChange={onDateChange}
+                maximumDate={new Date()}
+                textColor={colors.textPrimary}
+                style={{ height: 200 }}
+              />
+              <View style={styles.iosPickerActions}>
+                <TouchableOpacity onPress={() => setDatePickerTarget(null)} style={styles.iosPickerBtn}>
+                  <Text style={styles.iosPickerBtnText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={confirmIOSDate} style={[styles.iosPickerBtn, styles.iosPickerBtnPrimary]}>
+                  <Text style={[styles.iosPickerBtnText, styles.iosPickerBtnPrimaryText]}>Confirm</Text>
+                </TouchableOpacity>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      )}
+
       {/* Device picker */}
       <Modal visible={devicePickerOpen} transparent animationType="fade" onRequestClose={() => setDevicePickerOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setDevicePickerOpen(false)}>
@@ -235,17 +304,14 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   filterText: { color: colors.textSecondary, fontSize: 12, lineHeight: 16, includeFontPadding: false },
-  dateInput: {
-    backgroundColor: colors.bgSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    color: colors.textPrimary,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    fontSize: 12,
-    width: 140,
-  },
+  dateBtn: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  dateActive: { color: colors.blueLight },
+  iosPickerCard: { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 16 },
+  iosPickerActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 12 },
+  iosPickerBtn: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 8, borderWidth: 1, borderColor: colors.border },
+  iosPickerBtnPrimary: { backgroundColor: colors.primary, borderColor: colors.primary },
+  iosPickerBtnText: { color: colors.textSecondary, fontSize: 14 },
+  iosPickerBtnPrimaryText: { color: '#fff', fontWeight: '600' },
   clearBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 7 },
   clearText: { color: colors.blueLight, fontSize: 12 },
   totalText: { color: colors.textSecondary, fontSize: 12, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 },

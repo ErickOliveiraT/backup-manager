@@ -88,8 +88,8 @@ export default function DashboardScreen() {
   const statusOptions = ['', 'healthy', 'warning', 'critical'] as const;
 
   return (
+    <View style={styles.root}>
     <FlatList
-      style={styles.root}
       data={filtered}
       keyExtractor={(item) => `${item.device_id}:${item.task}`}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
@@ -168,7 +168,8 @@ export default function DashboardScreen() {
         ) : null
       }
       renderItem={({ item }) => loading ? null : <StatusCard entry={item} />}
-    >
+    />
+
       {/* Device picker modal */}
       <Modal visible={devicePickerOpen} transparent animationType="fade" onRequestClose={() => setDevicePickerOpen(false)}>
         <Pressable style={styles.modalBackdrop} onPress={() => setDevicePickerOpen(false)}>
@@ -208,12 +209,12 @@ export default function DashboardScreen() {
           </View>
         </Pressable>
       </Modal>
-    </FlatList>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bgPrimary },
+  root: { flex: 1, backgroundColor: colors.bgPrimary, position: 'relative' },
   content: { padding: 16, paddingBottom: 32 },
   statsRow: { marginBottom: 12 },
   filterRow: {
