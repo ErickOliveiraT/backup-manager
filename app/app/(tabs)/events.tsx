@@ -292,224 +292,38 @@ export default function EventsScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bgPrimary },
-
-  filterScroll: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    flexGrow: 0,
-  },
-
-  filterRow: {
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    gap: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  filterBtn: {
-    backgroundColor: colors.bgSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    minHeight: 38, // garante espaço vertical
-    justifyContent: 'center', // centraliza verticalmente
-    flexShrink: 0,
-  },
-
-  filterText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    lineHeight: 18, // aumentado
-    textAlignVertical: 'center', // ajuda no Android
-    // removido includeFontPadding: false
-  },
-
-  dateBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-
-  dateActive: {
-    color: colors.blueLight,
-  },
-
-  iosPickerCard: {
-    backgroundColor: colors.bgSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    padding: 16,
-  },
-
-  iosPickerActions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 12,
-  },
-
-  iosPickerBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 9,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-
-  iosPickerBtnPrimary: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-
-  iosPickerBtnText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-  },
-
-  iosPickerBtnPrimaryText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-
-  clearBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 7,
-  },
-
-  clearText: {
-    color: colors.blueLight,
-    fontSize: 12,
-  },
-
-  totalText: {
-    color: colors.textSecondary,
-    fontSize: 12,
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 4,
-  },
-
-  list: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    gap: 10,
-  },
-
-  rowInfo: {
-    flex: 1,
-  },
-
-  rowDevice: {
-    color: colors.blueLight,
-    fontSize: 12,
-    fontFamily: 'monospace',
-  },
-
-  rowTask: {
-    color: colors.textPrimary,
-    fontSize: 12,
-    fontFamily: 'monospace',
-    marginTop: 1,
-  },
-
-  rowMeta: {
-    color: colors.textMuted,
-    fontSize: 11,
-    marginTop: 2,
-  },
-
-  iconBtn: {
-    padding: 12,
-    alignSelf: 'center',
-  },
-
-  pagination: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingVertical: 16,
-  },
-
-  pageBtn: {
-    backgroundColor: colors.bgSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 6,
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  pageBtnDisabled: {
-    opacity: 0.4,
-  },
-
-  pageBtnText: {
-    color: colors.textPrimary,
-    fontSize: 18,
-  },
-
-  pageInfo: {
-    color: colors.textSecondary,
-    fontSize: 13,
-  },
-
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    padding: 24,
-  },
-
-  pickerCard: {
-    backgroundColor: colors.bgSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    padding: 16,
-  },
-
-  pickerTitle: {
-    color: colors.textPrimary,
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-
-  pickerItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    marginBottom: 2,
-  },
-
-  pickerItemActive: {
-    backgroundColor: colors.primary + '22',
-  },
-
-  pickerItemText: {
-    color: colors.textSecondary,
-    fontSize: 14,
-  },
-
-  pickerItemTextActive: {
-    color: colors.blueLight,
-    fontWeight: '600',
-  },
+  filterScroll: { borderBottomWidth: 1, borderBottomColor: colors.border, flexGrow: 0 },
+  filterRow: { paddingHorizontal: 12, paddingVertical: 14, gap: 8, flexDirection: 'row', alignItems: 'center' },
+  filterBtn: { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.border, borderRadius: 8, paddingHorizontal: 12, minHeight: 38, justifyContent: 'center', flexShrink: 0 },
+  filterText: { color: colors.textSecondary, fontSize: 12, lineHeight: 18, textAlignVertical: 'center' },
+  dateBtn: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  dateActive: { color: colors.blueLight },
+  iosPickerCard: { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 16 },
+  iosPickerActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 12 },
+  iosPickerBtn: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 8, borderWidth: 1, borderColor: colors.border },
+  iosPickerBtnPrimary: { backgroundColor: colors.primary, borderColor: colors.primary },
+  iosPickerBtnText: { color: colors.textSecondary, fontSize: 14 },
+  iosPickerBtnPrimaryText: { color: '#fff', fontWeight: '600' },
+  clearBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 7 },
+  clearText: { color: colors.blueLight, fontSize: 12 },
+  totalText: { color: colors.textSecondary, fontSize: 12, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 },
+  list: { paddingHorizontal: 16, paddingBottom: 32 },
+  row: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border, gap: 10 },
+  rowInfo: { flex: 1 },
+  rowDevice: { color: colors.blueLight, fontSize: 12, fontFamily: 'monospace' },
+  rowTask: { color: colors.textPrimary, fontSize: 12, fontFamily: 'monospace', marginTop: 1 },
+  rowMeta: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
+  iconBtn: { padding: 12, alignSelf: 'center' },
+  pagination: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 16 },
+  pageBtn: { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.border, borderRadius: 6, width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  pageBtnDisabled: { opacity: 0.4 },
+  pageBtnText: { color: colors.textPrimary, fontSize: 18 },
+  pageInfo: { color: colors.textSecondary, fontSize: 13 },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', padding: 24 },
+  pickerCard: { backgroundColor: colors.bgSecondary, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 16 },
+  pickerTitle: { color: colors.textPrimary, fontSize: 15, fontWeight: '600', marginBottom: 12 },
+  pickerItem: { paddingVertical: 12, paddingHorizontal: 8, borderRadius: 8, marginBottom: 2 },
+  pickerItemActive: { backgroundColor: colors.primary + '22' },
+  pickerItemText: { color: colors.textSecondary, fontSize: 14 },
+  pickerItemTextActive: { color: colors.blueLight, fontWeight: '600' },
 });
