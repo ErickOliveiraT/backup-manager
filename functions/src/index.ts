@@ -14,6 +14,7 @@ import tasksRouter from './routes/tasks.js'
 import usersRouter from './routes/users.js'
 import { getAllEvents } from './services/eventService.js'
 import { getTasks } from './services/taskService.js'
+import { getDevices } from './services/deviceService.js'
 import { calculateStatus } from './services/statusService.js'
 import { getUsersWithFcmToken } from './services/userService.js'
 
@@ -64,9 +65,11 @@ export const users = onRequest(opts, makeApp(usersRouter, { protected: true }))
 export const dailyNotifications = onSchedule(
   { schedule: '0 20 * * *', timeZone: 'America/Sao_Paulo' },
   async () => {
-    const [events, tasks, users] = await Promise.all([getAllEvents(), getTasks(), getUsersWithFcmToken()])
+    const [events, tasks, devices, users] = await Promise.all([getAllEvents(), getTasks(), getDevices(), getUsersWithFcmToken()])
 
-    console.log(`[dailyNotifications] events=${events.length} tasks=${tasks.length} eligible_users=${users.length}`)
+    console.log(`[dailyNotifications] events=${events.length} tasks=${tasks.length} devices=${devices.length} eligible_users=${users.length}`)
+
+    const deviceNameMap = new Map(devices.map((d) => [d.id, d.name]))
 
     const allStatuses = calculateStatus(events, tasks)
     const issues = allStatuses.filter((s) => s.status !== 'healthy')
@@ -92,24 +95,29 @@ export const dailyNotifications = onSchedule(
         continue
       }
 
-      const critCount = filtered.filter((s) => s.status === 'critical').length
-      const warnCount = filtered.filter((s) => s.status === 'warning').length
-      const parts: string[] = []
-      if (critCount > 0) parts.push(`${critCount} crítico${critCount > 1 ? 's' : ''}`)
-      if (warnCount > 0) parts.push(`${warnCount} aviso${warnCount > 1 ? 's' : ''}`)
+      for (const issue of filtered) {
+        const deviceName = deviceNameMap.get(issue.device_id) ?? issue.device_id
+        const title = `${issue.status === 'critical' ? '🔴' : '🟡'} ${issue.task}`
+        const body = `${deviceName} · ${issue.status}`
 
-      const body = `Há ${parts.join(' e ')} nos seus backups.`
-      console.log(`[dailyNotifications] sending to user=${user.id} body="${body}"`)
+        console.log(`[dailyNotifications] sending to user=${user.id} title="${title}" body="${body}"`)
 
-      try {
-        const messageId = await getMessaging().send({
-          token: user.fcm_token!,
-          notification: { title: 'Backup Manager', body },
-          data: { critical: String(critCount), warning: String(warnCount) },
-        })
-        console.log(`[dailyNotifications] sent ok user=${user.id} messageId=${messageId}`)
-      } catch (err) {
-        console.error(`[dailyNotifications] send failed user=${user.id}`, err)
+        try {
+          const messageId = await getMessaging().send({
+            token: user.fcm_token!,
+            notification: { title, body },
+            data: { device_id: issue.device_id, task: issue.task, status: issue.status },
+            android: {
+              priority: 'high',
+              notification: {
+                tag: `${issue.device_id}:${issue.task}`,
+              },
+            },
+          })
+          console.log(`[dailyNotifications] sent ok user=${user.id} messageId=${messageId}`)
+        } catch (err) {
+          console.error(`[dailyNotifications] send failed user=${user.id} task=${issue.task}`, err)
+        }
       }
     }
 
