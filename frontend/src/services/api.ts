@@ -141,3 +141,10 @@ export const changePassword = (current_password: string, new_password: string) =
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ current_password, new_password }),
   })
+
+export const updateNotificationPreference = (preference: User['notification_preference']) =>
+  request<void>('/users/me/notifications', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ notification_preference: preference }),
+  })

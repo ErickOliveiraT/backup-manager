@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Key, Eye, EyeOff, Copy, RefreshCw, Check, Lock } from 'lucide-react'
-import { fetchMe, regenerateApiKey, changePassword } from '../services/api'
+import { Key, Eye, EyeOff, Copy, RefreshCw, Check, Lock, Bell } from 'lucide-react'
+import { fetchMe, regenerateApiKey, changePassword, updateNotificationPreference } from '../services/api'
 import type { User } from '../types'
 
 function PasswordField({
@@ -51,6 +51,12 @@ export function SettingsPage() {
   const [confirmRegen, setConfirmRegen] = useState(false)
   const [regenError, setRegenError] = useState('')
 
+  // Notification preference state
+  const [notifPref, setNotifPref] = useState<User['notification_preference']>('none')
+  const [notifSaving, setNotifSaving] = useState(false)
+  const [notifSuccess, setNotifSuccess] = useState(false)
+  const [notifError, setNotifError] = useState('')
+
   // Password change state
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -61,7 +67,10 @@ export function SettingsPage() {
 
   useEffect(() => {
     fetchMe()
-      .then(setUser)
+      .then((u) => {
+        setUser(u)
+        setNotifPref(u.notification_preference ?? 'none')
+      })
       .catch(() => setLoadError('Failed to load user data'))
       .finally(() => setLoading(false))
   }, [])
@@ -113,6 +122,20 @@ export function SettingsPage() {
       setPasswordError(err instanceof Error ? err.message : 'Failed to change password')
     } finally {
       setPasswordSaving(false)
+    }
+  }
+
+  const handleSaveNotifPref = async () => {
+    setNotifSaving(true)
+    setNotifSuccess(false)
+    setNotifError('')
+    try {
+      await updateNotificationPreference(notifPref)
+      setNotifSuccess(true)
+    } catch {
+      setNotifError('Failed to save preference')
+    } finally {
+      setNotifSaving(false)
     }
   }
 
@@ -194,6 +217,39 @@ export function SettingsPage() {
                 )}
               </div>
               {regenError && <p className="text-red-400 text-xs mt-2">{regenError}</p>}
+            </div>
+          </div>
+
+          {/* Push notifications */}
+          <div className="bg-[#1a1f2e] border border-[#2a3040] rounded-xl">
+            <div className="px-6 py-4 flex items-center gap-2 border-b border-[#2a3040]">
+              <Bell size={14} className="text-blue-400" />
+              <span className="text-gray-300 text-sm font-medium">Push notifications</span>
+            </div>
+            <div className="px-6 py-5 flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-gray-400 text-xs">Preference</label>
+                <select
+                  value={notifPref}
+                  onChange={(e) => setNotifPref(e.target.value as User['notification_preference'])}
+                  className="bg-gray-900 border border-gray-600 text-gray-200 text-sm rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="none">Disabled</option>
+                  <option value="warning_and_critical">Critical &amp; Warning</option>
+                  <option value="critical_only">Critical only</option>
+                </select>
+              </div>
+              {notifError && <p className="text-red-400 text-xs">{notifError}</p>}
+              {notifSuccess && <p className="text-green-400 text-xs">Preference saved.</p>}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSaveNotifPref}
+                  disabled={notifSaving}
+                  className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md px-4 py-2 transition-colors"
+                >
+                  {notifSaving ? 'Saving…' : 'Save'}
+                </button>
+              </div>
             </div>
           </div>
 

@@ -140,3 +140,17 @@ export async function changePassword(current_password: string, new_password: str
     body: JSON.stringify({ current_password, new_password }),
   });
 }
+
+export async function updateNotificationPreference(preference: User['notification_preference']): Promise<void> {
+  return request<void>('/users/me/notifications', {
+    method: 'PATCH',
+    body: JSON.stringify({ notification_preference: preference }),
+  });
+}
+
+export async function postFcmToken(token: string): Promise<void> {
+  return request<void>('/users/me/fcm-token', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}

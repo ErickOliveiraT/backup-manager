@@ -37,6 +37,7 @@ export interface User {
   name: string;
   username: string;
   api_key: string;
+  notification_preference: 'none' | 'warning_and_critical' | 'critical_only';
 }
 
 export interface PaginatedDevices {

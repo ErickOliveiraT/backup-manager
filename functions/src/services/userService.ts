@@ -35,3 +35,21 @@ export async function regenerateApiKey(userId: string): Promise<string> {
 export async function updatePassword(userId: string, newPasswordHash: string): Promise<void> {
   await usersCol.doc(userId).update({ password_hash: newPasswordHash })
 }
+
+export async function updateNotificationPreference(
+  userId: string,
+  pref: User['notification_preference']
+): Promise<void> {
+  await usersCol.doc(userId).update({ notification_preference: pref })
+}
+
+export async function updateFcmToken(userId: string, token: string): Promise<void> {
+  await usersCol.doc(userId).update({ fcm_token: token })
+}
+
+export async function getUsersWithFcmToken(): Promise<User[]> {
+  const snap = await usersCol.get()
+  return snap.docs
+    .map((d) => docToUser(d.id, d.data()))
+    .filter((u) => u.fcm_token && u.notification_preference !== 'none')
+}

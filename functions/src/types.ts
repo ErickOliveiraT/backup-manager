@@ -30,6 +30,8 @@ export interface User {
   password_hash: string
   api_key: string
   created_at: string
+  notification_preference: 'none' | 'warning_and_critical' | 'critical_only'
+  fcm_token: string | null
 }
 
 export interface StatusEntry {

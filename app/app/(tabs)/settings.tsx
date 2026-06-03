@@ -9,10 +9,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { Copy, Eye, EyeOff, Key, Lock, LogOut, RefreshCw, Shield } from 'lucide-react-native';
+import { Bell, Copy, Eye, EyeOff, Key, Lock, LogOut, RefreshCw, Shield } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
-import { changePassword, getMe, regenerateApiKey } from '../../src/services/api';
+import { changePassword, getMe, regenerateApiKey, updateNotificationPreference } from '../../src/services/api';
 import { clearToken } from '../../src/services/auth';
 import { colors } from '../../src/theme';
 import type { User } from '../../src/types';
@@ -27,6 +27,10 @@ export default function SettingsScreen() {
   const [regenerating, setRegenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [notifPref, setNotifPref] = useState<User['notification_preference']>('none');
+  const [savingNotif, setSavingNotif] = useState(false);
+  const [notifMsg, setNotifMsg] = useState('');
+
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
@@ -37,7 +41,10 @@ export default function SettingsScreen() {
   const [pwError, setPwError] = useState('');
 
   useEffect(() => {
-    getMe().then(setUser).finally(() => setLoading(false));
+    getMe().then((u) => {
+      setUser(u);
+      setNotifPref(u.notification_preference ?? 'none');
+    }).finally(() => setLoading(false));
   }, []);
 
   async function handleCopy() {
@@ -75,6 +82,19 @@ export default function SettingsScreen() {
       setPwError(e.message || 'Failed to change password');
     } finally {
       setChangingPw(false);
+    }
+  }
+
+  async function handleSaveNotifPref() {
+    setSavingNotif(true);
+    setNotifMsg('');
+    try {
+      await updateNotificationPreference(notifPref);
+      setNotifMsg('Preference saved');
+    } catch {
+      setNotifMsg('Failed to save preference');
+    } finally {
+      setSavingNotif(false);
     }
   }
 
@@ -138,6 +158,43 @@ export default function SettingsScreen() {
                 <Text style={styles.regenWarning}>This will invalidate the current key.</Text>
               )}
             </View>
+          </View>
+
+          {/* Push Notifications */}
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Bell size={18} color={colors.blueLight} />
+              <Text style={styles.cardTitle}>Push Notifications</Text>
+            </View>
+            {(['none', 'warning_and_critical', 'critical_only'] as const).map((opt) => {
+              const labels = {
+                none: 'Disabled',
+                warning_and_critical: 'Critical & Warning',
+                critical_only: 'Critical only',
+              };
+              const active = notifPref === opt;
+              return (
+                <Pressable
+                  key={opt}
+                  onPress={() => setNotifPref(opt)}
+                  style={[styles.prefOption, active && styles.prefOptionActive]}
+                >
+                  <Text style={[styles.prefOptionText, active && styles.prefOptionTextActive]}>
+                    {labels[opt]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            {notifMsg ? <Text style={notifMsg === 'Preference saved' ? styles.successText : styles.errorText}>{notifMsg}</Text> : null}
+            <Pressable
+              style={[styles.submitBtn, savingNotif && styles.btnDisabled]}
+              onPress={handleSaveNotifPref}
+              disabled={savingNotif}
+            >
+              {savingNotif
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={styles.submitBtnText}>Save</Text>}
+            </Pressable>
           </View>
 
           {/* Change Password */}
@@ -274,6 +331,26 @@ const styles = StyleSheet.create({
   },
   submitBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   btnDisabled: { opacity: 0.5 },
+  prefOption: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+  },
+  prefOptionActive: {
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(37,99,235,0.1)',
+  },
+  prefOptionText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+  },
+  prefOptionTextActive: {
+    color: colors.blueLight,
+    fontWeight: '600' as const,
+  },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',

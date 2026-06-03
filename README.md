@@ -119,6 +119,26 @@ npm start          # inicia o Expo dev server
 npm run apk        # gera APK via EAS (build remoto — perfil preview)
 ```
 
+#### Dev client (necessário para push notifications)
+
+O `expo-notifications` exige um dev client com o native module incluído — não funciona no Expo Go.
+
+```bash
+# Gerar novo dev client após instalar/atualizar módulos nativos
+eas build --profile development --platform android
+
+# Ou rodar localmente (requer Android SDK / emulador)
+npx expo run:android
+```
+
+Depois de instalar o APK do dev client no dispositivo:
+
+```bash
+npm start   # conecta ao dev client via QR code ou IP
+```
+
+> Sempre que um módulo nativo for adicionado ao projeto (`expo install <pacote>`), é necessário gerar um novo dev client antes de usar o módulo.
+
 ---
 
 ## Deploy
