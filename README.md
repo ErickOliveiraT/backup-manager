@@ -139,6 +139,29 @@ npm start   # conecta ao dev client via QR code ou IP
 
 > Sempre que um módulo nativo for adicionado ao projeto (`expo install <pacote>`), é necessário gerar um novo dev client antes de usar o módulo.
 
+#### google-services.json (FCM)
+
+O arquivo `google-services.json` é necessário para o FCM funcionar e está no `.gitignore`. Para builds via EAS, ele é armazenado como secret e injetado automaticamente durante o build.
+
+**Setup inicial (uma vez por ambiente):**
+
+```bash
+# Baixar o arquivo em Firebase Console → Project Settings → Your apps → Android
+# Salvar como app/google-services.json, depois:
+
+eas env:create --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --visibility secret --environment development
+eas env:create --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --visibility secret --environment preview
+eas env:create --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --visibility secret --environment production
+```
+
+Para verificar:
+
+```bash
+eas env:list
+```
+
+O `app.config.js` já lê `process.env.GOOGLE_SERVICES_JSON` durante o build EAS e cai de volta para `./google-services.json` em builds locais.
+
 ---
 
 ## Deploy
