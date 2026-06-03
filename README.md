@@ -1,6 +1,6 @@
 # Backup Manager
 
-Sistema de monitoramento de backups. Recebe eventos via webhook e exibe o status de saúde em um dashboard web e em um app mobile.
+Sistema de monitoramento de backups. Recebe eventos via webhook e exibe o status de saúde em um dashboard web e em um app mobile Android.
 
 ## Stack
 
@@ -8,8 +8,9 @@ Sistema de monitoramento de backups. Recebe eventos via webhook e exibe o status
 |---|---|
 | **API** | Node.js + TypeScript + Firebase Functions v2 + Express |
 | **Banco** | Firestore |
-| **Frontend** | React + Vite + TypeScript + Tailwind CSS v4 |
-| **App** | Expo (React Native) — build via EAS |
+| **Frontend** | React 19 + Vite + TypeScript + Tailwind CSS v4 |
+| **App** | Expo SDK 56 (React Native) — build via EAS |
+| **Notificações** | FCM via Firebase Admin SDK — cron diário às 20h BRT |
 | **Hosting** | Firebase Hosting — `https://backup-manager-2ae79.web.app` |
 
 ---
@@ -23,7 +24,7 @@ backup-manager/
 ├── .firebaserc
 ├── functions/             # API — Firebase Functions + Express
 │   ├── src/
-│   │   ├── index.ts       # 7 function exports
+│   │   ├── index.ts       # exports das functions (HTTP + scheduled)
 │   │   ├── types.ts
 │   │   ├── db/
 │   │   ├── middleware/
@@ -35,18 +36,24 @@ backup-manager/
 ├── frontend/              # Dashboard web
 │   ├── src/
 │   │   ├── components/
+│   │   ├── context/
 │   │   ├── pages/
 │   │   ├── hooks/
 │   │   └── services/
 │   ├── .env               # URL da API em produção (gitignored)
 │   ├── .env.local         # URL do emulador em dev (gitignored)
-│   └── .env.example       # template com URL do emulador
+│   └── .env.example
 └── app/                   # App mobile (Expo)
     ├── app/               # telas (expo-router)
+    │   ├── (tabs)/        # Dashboard, Devices, Tasks, Events, Settings
+    │   ├── _layout.tsx    # auth guard + registro de push token
+    │   └── login.tsx
     ├── src/
     │   ├── components/
-    │   ├── services/
+    │   ├── services/      # api.ts, auth.ts
+    │   ├── theme.ts
     │   └── types.ts
+    ├── app.config.js      # config dinâmica (lê GOOGLE_SERVICES_JSON do EAS)
     ├── app.json
     └── eas.json
 ```
@@ -160,7 +167,7 @@ Para verificar:
 eas env:list
 ```
 
-O `app.config.js` já lê `process.env.GOOGLE_SERVICES_JSON` durante o build EAS e cai de volta para `./google-services.json` em builds locais.
+O `app.config.js` lê `process.env.GOOGLE_SERVICES_JSON` durante o build EAS e cai de volta para `./google-services.json` em builds locais.
 
 ---
 
@@ -217,19 +224,22 @@ Use o token retornado no header `Authorization: Bearer <token>` em todos os endp
 
 ### Endpoints
 
-| Rota | Método | Auth |
-|---|---|---|
-| `/auth/login` | POST | público |
-| `/webhooks/sync` | POST | api_key no body |
-| `/devices` | GET, POST | JWT |
-| `/devices/:id` | PATCH, DELETE | JWT |
-| `/events` | GET | JWT |
-| `/events/:id` | DELETE | JWT |
-| `/tasks` | GET, POST | JWT |
-| `/tasks/:id` | PATCH, DELETE | JWT |
-| `/status` | GET | JWT |
-| `/users/me` | GET | JWT |
-| `/users/me/api-key` | POST | JWT |
+| Rota | Método | Auth | Descrição |
+|---|---|---|---|
+| `/auth/login` | POST | público | Retorna JWT |
+| `/webhooks/sync` | POST | api_key no body | Registra evento de backup |
+| `/devices` | GET, POST | JWT | Lista / cria dispositivos |
+| `/devices/:id` | PATCH, DELETE | JWT | Atualiza / remove dispositivo |
+| `/events` | GET | JWT | Lista eventos com filtros |
+| `/events/:id` | DELETE | JWT | Remove evento |
+| `/tasks` | GET, POST | JWT | Lista / cria tasks |
+| `/tasks/:id` | PATCH, DELETE | JWT | Atualiza / remove task |
+| `/status` | GET | JWT | Status de saúde por device+task |
+| `/users/me` | GET | JWT | Perfil do usuário |
+| `/users/me/api-key` | POST | JWT | Regenera API key |
+| `/users/me/password` | POST | JWT | Altera senha |
+| `/users/me/notifications` | PATCH | JWT | Atualiza preferência de notificação |
+| `/users/me/fcm-token` | POST | JWT | Registra token FCM do dispositivo |
 
 ### Eventos — parâmetros de query
 
@@ -244,6 +254,25 @@ Formato da resposta:
 ```json
 { "data": [...], "total": 243, "page": 1, "pages": 10 }
 ```
+
+---
+
+## Notificações push
+
+A function `dailyNotifications` roda todo dia às **20:00 BRT** via Cloud Scheduler. Para cada usuário com `fcm_token` e `notification_preference !== 'none'`, envia uma notificação FCM por task com problema.
+
+**Formato:**
+```
+🔴 documents-backup          ← título (nome da task)
+notebook-linux · critical    ← body (dispositivo · status)
+```
+
+**Preferências disponíveis** (configuráveis em Settings no web e no app):
+- Disabled
+- Critical & Warning
+- Critical only
+
+**Testando manualmente:** GCP Console → Cloud Scheduler → `firebase-schedule-dailyNotifications-us-central1` → **Run now**.
 
 ---
 
