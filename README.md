@@ -259,7 +259,7 @@ Formato da resposta:
 
 ## Notificações push
 
-A function `dailyNotifications` roda todo dia às **20:00 BRT** via Cloud Scheduler. Para cada usuário com `fcm_token` e `notification_preference !== 'none'`, envia uma notificação FCM por task com problema.
+A function `dailyNotifications` roda todo dia às **20:00 BRT** via Cloud Scheduler. Para cada usuário com `fcm_token` e `notification_preference !== 'none'`, envia uma notificação FCM separada por task com problema (excluindo tasks de dispositivos com `notifications_enabled: false`).
 
 **Formato:**
 ```
@@ -271,6 +271,8 @@ notebook-linux · critical    ← body (dispositivo · status)
 - Disabled
 - Critical & Warning
 - Critical only
+
+**Controle por dispositivo:** cada device tem um campo `notifications_enabled` (padrão `true`, `PATCH /devices/:id`). Dispositivos com notificações desativadas são ignorados pelo `dailyNotifications` mesmo que o usuário tenha uma preferência ativa.
 
 **Testando manualmente:** GCP Console → Cloud Scheduler → `firebase-schedule-dailyNotifications-us-central1` → **Run now**.
 

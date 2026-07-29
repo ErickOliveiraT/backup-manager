@@ -113,3 +113,7 @@ Configurável na tela Settings:
 | Disabled | Nenhuma notificação |
 | Critical & Warning | Notifica tasks em warning e critical |
 | Critical only | Notifica apenas tasks em critical |
+
+### Mute por dispositivo
+
+Na tela Devices, cada dispositivo tem um botão de sino para ativar/desativar notificações individualmente (`notifications_enabled`, padrão ligado). Dispositivos mutados são ignorados pelo cron diário mesmo com a preferência do usuário ativa.

@@ -60,7 +60,7 @@ cp .env.example .env.local
 | Página | Rota | Descrição |
 |---|---|---|
 | Dashboard | `/` | Visão geral com cards de status, gráficos e eventos recentes |
-| Devices | `/devices` | CRUD de dispositivos com paginação |
+| Devices | `/devices` | CRUD de dispositivos com paginação e toggle de notificações por dispositivo |
 | Tasks | `/tasks` | CRUD de tasks com configuração de thresholds e cron |
 | Events | `/events` | Log de eventos com filtros por dispositivo, status e data |
 | Settings | `/settings` | API key, senha e preferência de notificações push |
