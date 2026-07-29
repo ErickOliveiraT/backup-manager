@@ -72,11 +72,11 @@ export const createDevice = (data: { id: string; name: string }) =>
     body: JSON.stringify(data),
   })
 
-export const updateDevice = (id: string, name: string) =>
+export const updateDevice = (id: string, patch: { name?: string; notifications_enabled?: boolean }) =>
   request<Device>(`/devices/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(patch),
   })
 
 export interface TaskFilters {
