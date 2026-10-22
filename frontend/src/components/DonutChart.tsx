@@ -41,7 +41,6 @@ export function DonutChart({ healthy, warning, critical }: DonutChartProps) {
                   stroke="#22c55e"
                   strokeWidth={20}
                   strokeDasharray={`${hDash} ${C}`}
-                  strokeDashoffset={0}
                   transform={`rotate(-90 ${CX} ${CY})`}
                 />
                 {/* Warning (yellow) */}
@@ -50,8 +49,7 @@ export function DonutChart({ healthy, warning, critical }: DonutChartProps) {
                   fill="none"
                   stroke="#eab308"
                   strokeWidth={20}
-                  strokeDasharray={`${wDash} ${C}`}
-                  strokeDashoffset={C - hDash}
+                  strokeDasharray={`0 ${hDash} ${wDash} ${C}`}
                   transform={`rotate(-90 ${CX} ${CY})`}
                 />
                 {/* Critical (red) */}
@@ -60,8 +58,7 @@ export function DonutChart({ healthy, warning, critical }: DonutChartProps) {
                   fill="none"
                   stroke="#ef4444"
                   strokeWidth={20}
-                  strokeDasharray={`${cDash} ${C}`}
-                  strokeDashoffset={C - hDash - wDash}
+                  strokeDasharray={`0 ${hDash + wDash} ${cDash} ${C}`}
                   transform={`rotate(-90 ${CX} ${CY})`}
                 />
               </>
