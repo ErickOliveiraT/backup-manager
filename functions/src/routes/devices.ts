@@ -34,12 +34,29 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 router.patch('/:id', async (req: Request<{ id: string }>, res: Response) => {
-  const { name } = req.body as Record<string, unknown>
-  if (!name || typeof name !== 'string') {
+  const { name, notifications_enabled } = req.body as Record<string, unknown>
+  const patch: { name?: string; notifications_enabled?: boolean } = {}
+
+  if (name !== undefined) {
+    if (typeof name !== 'string' || !name) {
+      res.status(400).json({ error: 'Field "name" is required' })
+      return
+    }
+    patch.name = name
+  }
+  if (notifications_enabled !== undefined) {
+    if (typeof notifications_enabled !== 'boolean') {
+      res.status(400).json({ error: 'Field "notifications_enabled" must be a boolean' })
+      return
+    }
+    patch.notifications_enabled = notifications_enabled
+  }
+  if (Object.keys(patch).length === 0) {
     res.status(400).json({ error: 'Field "name" is required' })
     return
   }
-  const updated = await updateDevice(req.params.id, name)
+
+  const updated = await updateDevice(req.params.id, patch)
   if (!updated) {
     res.status(404).json({ error: `Device "${req.params.id}" not found` })
     return

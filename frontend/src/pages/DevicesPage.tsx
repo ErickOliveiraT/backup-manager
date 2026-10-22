@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Bell, BellOff } from 'lucide-react'
 import { fetchDevicesPaginated, updateDevice, deleteDevice } from '../services/api'
 import { useLastUpdated } from '../context/LastUpdatedContext'
 import { TableSkeleton } from '../components/Skeleton'
@@ -119,11 +119,24 @@ export function DevicesPage() {
   const saveEdit = async (id: string) => {
     setEditError('')
     try {
-      await updateDevice(id, editName.trim())
+      await updateDevice(id, { name: editName.trim() })
       setEditingId(null)
       await load(page)
     } catch (err) {
       setEditError(err instanceof Error ? err.message : 'Failed to save')
+    }
+  }
+
+  const toggleNotifications = async (device: Device) => {
+    const enabled = device.notifications_enabled ?? true
+    setPaginated((prev) => ({
+      ...prev,
+      data: prev.data.map((d) => (d.id === device.id ? { ...d, notifications_enabled: !enabled } : d)),
+    }))
+    try {
+      await updateDevice(device.id, { notifications_enabled: !enabled })
+    } catch {
+      await load(page)
     }
   }
 
@@ -157,6 +170,7 @@ export function DevicesPage() {
                     <th className="px-4 py-3">ID</th>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Registered</th>
+                    <th className="px-4 py-3">Alerts</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
@@ -180,6 +194,15 @@ export function DevicesPage() {
                         <td className="px-4 py-2 text-gray-500 text-xs">
                           {new Date(d.created_at).toLocaleDateString()}
                         </td>
+                        <td className="px-4 py-2">
+                          <button
+                            onClick={() => toggleNotifications(d)}
+                            title={(d.notifications_enabled ?? true) ? 'Alerts on — click to mute' : 'Alerts muted — click to enable'}
+                            className={`transition-colors ${(d.notifications_enabled ?? true) ? 'text-indigo-400 hover:text-indigo-300' : 'text-gray-600 hover:text-gray-400'}`}
+                          >
+                            {(d.notifications_enabled ?? true) ? <Bell size={15} /> : <BellOff size={15} />}
+                          </button>
+                        </td>
                         <td className="px-3 py-2">
                           <div className="flex flex-col gap-1">
                             <div className="flex gap-2">
@@ -202,7 +225,7 @@ export function DevicesPage() {
                       </tr>
                     ) : confirmingId === d.id ? (
                       <tr key={d.id} className="bg-red-950/40">
-                        <td colSpan={4} className="px-4 py-3">
+                        <td colSpan={5} className="px-4 py-3">
                           <div className="flex items-center justify-between gap-4">
                             <span className="text-red-300 text-xs">
                               Delete device <span className="font-mono text-red-200">{d.id}</span>? This cannot be undone.
@@ -230,6 +253,15 @@ export function DevicesPage() {
                         <td className="px-4 py-3">{d.name}</td>
                         <td className="px-4 py-3 text-gray-500 text-xs">
                           {new Date(d.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => toggleNotifications(d)}
+                            title={(d.notifications_enabled ?? true) ? 'Alerts on — click to mute' : 'Alerts muted — click to enable'}
+                            className={`transition-colors ${(d.notifications_enabled ?? true) ? 'text-indigo-400 hover:text-indigo-300' : 'text-gray-600 hover:text-gray-400'}`}
+                          >
+                            {(d.notifications_enabled ?? true) ? <Bell size={15} /> : <BellOff size={15} />}
+                          </button>
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-3">

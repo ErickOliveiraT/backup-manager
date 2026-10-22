@@ -2,6 +2,7 @@ export interface Device {
   id: string
   name: string
   created_at: string
+  notifications_enabled?: boolean
 }
 
 export interface BackupEvent {

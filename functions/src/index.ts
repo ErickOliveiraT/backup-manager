@@ -70,9 +70,12 @@ export const dailyNotifications = onSchedule(
     console.log(`[dailyNotifications] events=${events.length} tasks=${tasks.length} devices=${devices.length} eligible_users=${users.length}`)
 
     const deviceNameMap = new Map(devices.map((d) => [d.id, d.name]))
+    const deviceMap = new Map(devices.map((d) => [d.id, d]))
 
     const allStatuses = calculateStatus(events, tasks)
-    const issues = allStatuses.filter((s) => s.status !== 'healthy')
+    const issues = allStatuses.filter(
+      (s) => s.status !== 'healthy' && (deviceMap.get(s.device_id)?.notifications_enabled ?? true)
+    )
 
     console.log(`[dailyNotifications] total_statuses=${allStatuses.length} issues=${issues.length}`)
     issues.forEach((s) => console.log(`[dailyNotifications] issue device=${s.device_id} task=${s.task} status=${s.status}`))

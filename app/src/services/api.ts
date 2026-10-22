@@ -63,10 +63,13 @@ export async function createDevice(id: string, name: string): Promise<Device> {
   });
 }
 
-export async function updateDevice(id: string, name: string): Promise<Device> {
+export async function updateDevice(
+  id: string,
+  patch: { name?: string; notifications_enabled?: boolean }
+): Promise<Device> {
   return request<Device>(`/devices/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ name }),
+    body: JSON.stringify(patch),
   });
 }
 

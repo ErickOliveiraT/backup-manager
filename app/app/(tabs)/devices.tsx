@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react-native';
+import { Plus, Pencil, Trash2, X, Check, Bell, BellOff } from 'lucide-react-native';
 import { createDevice, deleteDevice, getDevices, updateDevice } from '../../src/services/api';
 import { RowSkeleton } from '../../src/components/Skeleton';
 import { colors } from '../../src/theme';
@@ -57,13 +57,28 @@ export default function DevicesScreen() {
   async function handleSave(id: string) {
     setSaving(true);
     try {
-      const updated = await updateDevice(id, editName);
+      const updated = await updateDevice(id, { name: editName });
       setDevices((prev) => prev.map((d) => (d.id === id ? updated : d)));
       setEditId(null);
     } catch (e: any) {
       Alert.alert('Error', e.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleToggleNotifications(device: Device) {
+    const enabled = device.notifications_enabled ?? true;
+    setDevices((prev) =>
+      prev.map((d) => (d.id === device.id ? { ...d, notifications_enabled: !enabled } : d))
+    );
+    try {
+      await updateDevice(device.id, { notifications_enabled: !enabled });
+    } catch (e: any) {
+      setDevices((prev) =>
+        prev.map((d) => (d.id === device.id ? { ...d, notifications_enabled: enabled } : d))
+      );
+      Alert.alert('Error', e.message);
     }
   }
 
@@ -146,6 +161,13 @@ export default function DevicesScreen() {
                   <Text style={styles.rowId}>{d.id}</Text>
                   <Text style={styles.rowName}>{d.name}</Text>
                 </View>
+                <Pressable style={styles.iconBtn} onPress={() => handleToggleNotifications(d)}>
+                  {(d.notifications_enabled ?? true) ? (
+                    <Bell size={15} color={colors.blueLight} />
+                  ) : (
+                    <BellOff size={15} color={colors.textMuted} />
+                  )}
+                </Pressable>
                 <Pressable style={styles.iconBtn} onPress={() => { setEditId(d.id); setEditName(d.name); }}>
                   <Pencil size={15} color={colors.blueLight} />
                 </Pressable>

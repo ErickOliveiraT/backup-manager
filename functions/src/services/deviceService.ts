@@ -24,7 +24,7 @@ export async function getDevicesPaginated(page = 1, limit = 10): Promise<Paginat
 }
 
 export async function addDevice(payload: { id: string; name: string }): Promise<Device> {
-  const device: Device = { ...payload, created_at: new Date().toISOString() }
+  const device: Device = { ...payload, created_at: new Date().toISOString(), notifications_enabled: true }
   await devicesCol.doc(device.id).set(device)
   return device
 }
@@ -34,12 +34,15 @@ export async function deviceExists(id: string): Promise<boolean> {
   return snap.exists
 }
 
-export async function updateDevice(id: string, name: string): Promise<Device | null> {
+export async function updateDevice(
+  id: string,
+  patch: { name?: string; notifications_enabled?: boolean }
+): Promise<Device | null> {
   const docRef = devicesCol.doc(id)
   const snap = await docRef.get()
   if (!snap.exists) return null
-  await docRef.update({ name })
-  return { ...(snap.data() as Device), name }
+  await docRef.update(patch)
+  return { ...(snap.data() as Device), ...patch }
 }
 
 export async function deleteDevice(id: string): Promise<boolean> {
