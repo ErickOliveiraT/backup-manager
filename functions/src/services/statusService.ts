@@ -1,10 +1,11 @@
-import type { BackupEvent, Task, StatusEntry } from '../types.js'
+import type { BackupEvent, Device, Task, StatusEntry } from '../types.js'
 
 const HOUR = 60 * 60 * 1000
 const DEFAULT_WARNING_H = 24
 const DEFAULT_CRITICAL_H = 72
 
-export function calculateStatus(events: BackupEvent[], tasks: Task[]): StatusEntry[] {
+export function calculateStatus(events: BackupEvent[], tasks: Task[], devices: Device[]): StatusEntry[] {
+  const deviceIds = new Set(devices.map((d) => d.id))
   const taskMap = new Map<string, Task>()
   for (const t of tasks) {
     taskMap.set(`${t.device_id}:${t.task}`, t)
@@ -12,6 +13,7 @@ export function calculateStatus(events: BackupEvent[], tasks: Task[]): StatusEnt
 
   const groups = new Map<string, BackupEvent[]>()
   for (const event of events) {
+    if (!deviceIds.has(event.device_id)) continue
     const key = `${event.device_id}:${event.task}`
     const group = groups.get(key) ?? []
     group.push(event)
